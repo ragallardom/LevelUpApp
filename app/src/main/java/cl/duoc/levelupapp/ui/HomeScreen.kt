@@ -17,11 +17,46 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.rememberNavController
 import cl.duoc.levelupapp.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen() {
+
+    val nav = rememberNavController()
+
+    NavHost(navController = nav, startDestination = "homeRoot") {
+        @Composable("homeRoot") {
+            Scaffold (
+                topBar = {
+                    TopAppBar(
+                        title = { Text(text = "Level Up App") }
+                    )
+                } ) {inner -> HomeContent(
+                    modifier = Modifier.padding(inner)
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    onLoginClick = { nav.navigate("login") }
+                )}
+
+
+        }
+
+        @Composable("login") {
+            LoginScreen(onBack = { nav.popBackStack() },
+                onLoginSuccess = { nav.navigate("principal") })
+        }
+
+        composable("principal") {
+            PrincipalScreen(onLogout = {
+                nav.navigate("homeRoot")
+                popUpTo("homeRoot") { inclusive = true}
+            })
+        }
+    }
+
     Scaffold (
         topBar = {
             TopAppBar(
@@ -40,6 +75,11 @@ fun HomeScreen() {
             )
         }
     }
+}
+
+@Composable
+fun HomeContent(modifier: Modifier, onLoginClick: () -> navigate) {
+    TODO("Not yet implemented")
 }
 
 @Preview(showBackground = true)
