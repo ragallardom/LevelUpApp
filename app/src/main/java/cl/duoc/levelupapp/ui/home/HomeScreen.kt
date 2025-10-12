@@ -25,19 +25,18 @@ fun HomeScreen(
     onRecoverClick: () -> Unit,
 ) {
     Scaffold(
+        contentWindowInsets = WindowInsets(0,0,0,0),
         containerColor = Color.Transparent,
         topBar = {
-            TopAppBar(
-                title = { Text("Level UP Gamer", color = Color.White) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = BrandDeepBlue,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White,
-                    actionIconContentColor = Color.White,
-                )
-            )
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    // Altura estándar de una TopAppBar pequeña. Puedes ajustarla si quieres.
+                    .height(22.dp),
+                color = BrandDeepBlue // Le damos el color de fondo deseado
+            ) {}
         }
-    ) { inner ->
+    ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -46,7 +45,7 @@ fun HomeScreen(
                         colors = listOf(BrandShadow, BrandMidnight, BrandDeepBlue)
                     )
                 )
-                .padding(inner)
+                .padding(innerPadding)
         ) {
             HomeContent(
                 modifier = Modifier
@@ -69,49 +68,51 @@ private fun HomeContent(
 ) {
     Column(
         modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        /*Image(
-            painter = painterResource(id = R.drawable.logo),
-            contentDescription = "Logo App",
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(150.dp),
-            contentScale = ContentScale.Fit
-        )*/
+        Spacer(modifier = Modifier.height(180.dp))
         AnimatedLogo(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(150.dp),
-            // playing = ui.desdeVM, si tienes VM; por ahora puede quedar por defecto
         )
-        Text("¡Bienvenido!", color = Color.White)
-        Button(
-            onClick = onLoginClick,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = BrandAccent,
-                contentColor = BrandDeepBlue
-            )
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text("Login")
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            TextButton(
-                onClick = onRegisterClick,
-                colors = ButtonDefaults.textButtonColors(contentColor = BrandAccent)
+            Button(
+                onClick = onLoginClick,
+                modifier = Modifier.fillMaxWidth(0.6f),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = BrandAccent,
+                    contentColor = BrandDeepBlue
+                )
             ) {
-                Text("Registrarse")
+                Text("Login")
             }
-            TextButton(
-                onClick = onRecoverClick,
-                colors = ButtonDefaults.textButtonColors(contentColor = BrandAccent)
-            ) {
-                Text("Recuperar contraseña")
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(
+                    onClick = onRegisterClick,
+                    colors = ButtonDefaults.textButtonColors(contentColor = BrandAccent)
+                ) {
+                    Text("Registrarse")
+                }
+                TextButton(
+                    onClick = onRecoverClick,
+                    colors = ButtonDefaults.textButtonColors(contentColor = BrandAccent)
+                ) {
+                    Text("Recuperar contraseña")
+                }
             }
         }
+
+        Spacer(modifier = Modifier.height(380.dp))
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable
