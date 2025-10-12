@@ -1,7 +1,6 @@
 package cl.duoc.levelupapp.repository.auth
 
 import cl.duoc.levelupapp.model.User
-import cl.duoc.levelupapp.repository.auth.FirebaseAuthDataSource
 
 class AuthRepository(
     private val ds: FirebaseAuthDataSource = FirebaseAuthDataSource()

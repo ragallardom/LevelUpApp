@@ -7,6 +7,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
+import androidx.compose.material3.ExposedDropdownMenuDefaults.outlinedTextFieldColors
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cl.duoc.levelupapp.R
+import androidx.compose.material3.TextFieldDefaults
 
 private val BrandShadow = Color(0xFF000000)
 private val BrandMidnight = Color(0xFF010E1C)
@@ -123,7 +125,16 @@ fun LoginScreen(
                             label = { Text("Correo electrónico") },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = BrandAccent,
+                                unfocusedTextColor = BrandAccent,
+                                cursorColor = BrandAccent,
+                                unfocusedBorderColor = BrandAccent.copy(alpha = 0.5f),
+                                unfocusedLabelColor = BrandAccent.copy(alpha = 0.7f),
+                                focusedBorderColor = BrandAccent,
+                                focusedLabelColor = BrandAccent
+                            )
                         )
 
                         OutlinedTextField(
@@ -133,7 +144,16 @@ fun LoginScreen(
                             singleLine = true,
                             visualTransformation = PasswordVisualTransformation(),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = BrandAccent,
+                                unfocusedTextColor = BrandAccent,
+                                cursorColor = BrandAccent,
+                                unfocusedBorderColor = BrandAccent.copy(alpha = 0.5f),
+                                unfocusedLabelColor = BrandAccent.copy(alpha = 0.7f),
+                                focusedBorderColor = BrandAccent,
+                                focusedLabelColor = BrandAccent
+                            )
                         )
 
                         if (state.error != null) {
