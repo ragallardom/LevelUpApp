@@ -43,10 +43,13 @@ import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -83,6 +86,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.annotation.DrawableRes
 import cl.duoc.levelupapp.R
+import cl.duoc.levelupapp.ui.carrito.CarritoViewModel
 import cl.duoc.levelupapp.model.Producto
 import cl.duoc.levelupapp.ui.theme.LevelUppAppTheme
 import com.google.android.gms.location.LocationServices
@@ -124,7 +128,9 @@ sealed interface LocationUiState {
 @Composable
 fun PrincipalScreen(
     onLogout: () -> Unit,
-    viewModel: PrincipalViewModel = viewModel()
+    onCartClick: () -> Unit = {},
+    viewModel: PrincipalViewModel = viewModel(),
+    carritoViewModel: CarritoViewModel = viewModel()
 ) {
     val context = LocalContext.current
     var searchQuery by remember { mutableStateOf("") }
@@ -143,6 +149,7 @@ fun PrincipalScreen(
     val categoriaSeleccionada by viewModel.categoriaSel.collectAsState()
     val productos by viewModel.productosFiltrados.collectAsState()
     val scope = rememberCoroutineScope()
+    val carritoUiState by carritoViewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.cargarProductos()
@@ -320,12 +327,20 @@ fun PrincipalScreen(
                             shape = CircleShape,
                             color = BrandAccent.copy(alpha = 0.2f)
                         ) {
-                            IconButton(onClick = { /* TODO: abrir carrito */ }) {
-                                Icon(
-                                    imageVector = Icons.Default.ShoppingCart,
-                                    contentDescription = "Carrito de compras",
-                                    tint = BrandAccent
-                                )
+                            BadgedBox(
+                                badge = {
+                                    if (carritoUiState.totalItems > 0) {
+                                        Badge { Text(text = carritoUiState.totalItems.toString()) }
+                                    }
+                                }
+                            ) {
+                                IconButton(onClick = onCartClick) {
+                                    Icon(
+                                        imageVector = Icons.Default.ShoppingCart,
+                                        contentDescription = "Carrito de compras",
+                                        tint = BrandAccent
+                                    )
+                                }
                             }
                         }
                     }
@@ -422,7 +437,10 @@ fun PrincipalScreen(
                     }
                 } else {
                     items(displayedProducts, key = { it.codigo }) { product ->
-                        ProductCard(producto = product)
+                        ProductCard(
+                            producto = product,
+                            onAddToCart = { carritoViewModel.agregarProducto(product) }
+                        )
                     }
                 }
             }
@@ -551,7 +569,10 @@ private fun CategoryChip(
 }
 
 @Composable
-private fun ProductCard(producto: Producto) {
+private fun ProductCard(
+    producto: Producto,
+    onAddToCart: () -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -597,6 +618,10 @@ private fun ProductCard(producto: Producto) {
                         fontWeight = FontWeight.Medium
                     )
                 )
+            }
+
+            FilledTonalButton(onClick = onAddToCart) {
+                Text(text = "Agregar")
             }
         }
     }
@@ -677,7 +702,12 @@ private fun LocationCard(
 @Composable
 private fun PrincipalScreenPreview() {
     LevelUppAppTheme {
-        PrincipalScreen(onLogout = {})
+        PrincipalScreen(
+            onLogout = {},
+            onCartClick = {},
+            viewModel = PrincipalViewModel(),
+            carritoViewModel = CarritoViewModel()
+        )
     }
 }
 
