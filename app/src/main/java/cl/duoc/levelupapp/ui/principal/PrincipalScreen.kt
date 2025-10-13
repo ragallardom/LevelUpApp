@@ -94,7 +94,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.resume
-import coil.compose.AsyncImage
 
 private val BrandShadow = Color(0xFF000000)
 private val BrandMidnight = Color(0xFF010E1C)
@@ -567,15 +566,13 @@ private fun ProductCard(producto: Producto) {
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            AsyncImage(
-                model = producto.imagenUrl,
+            Image(
+                painter = painterResource(id = producto.imagenRes),
                 contentDescription = producto.nombre,
                 modifier = Modifier
                     .size(72.dp)
                     .clip(RoundedCornerShape(12.dp)),
-                contentScale = ContentScale.Crop,
-                placeholder = painterResource(id = R.drawable.logo),
-                error = painterResource(id = R.drawable.logo)
+                contentScale = ContentScale.Crop
             )
 
             Column(
