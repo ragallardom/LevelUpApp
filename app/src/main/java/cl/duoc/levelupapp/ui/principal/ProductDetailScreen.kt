@@ -33,7 +33,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -42,10 +41,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import cl.duoc.levelupapp.model.Producto
 
-private val BrandShadow = Color(0xFF000000)
-private val BrandMidnight = Color(0xFF010E1C)
-private val BrandDeepBlue = Color(0xFF01142E)
-private val BrandAccent = Color(0xFFA8BFCD)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,18 +53,15 @@ fun ProductDetailScreen(
 ) {
     val producto = viewModel.obtenerProductoPorCodigo(productId)
     val relacionados = producto?.let { viewModel.productosRelacionados(it.categoria, it.codigo) }.orEmpty()
+    val colorScheme = MaterialTheme.colorScheme
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(BrandShadow, BrandMidnight, BrandDeepBlue)
-                )
-            )
+            .background(colorScheme.background)
     ) {
         Scaffold(
-            containerColor = Color.Transparent,
+            containerColor = colorScheme.background,
             topBar = {
                 TopAppBar(
                     title = {
@@ -84,14 +76,14 @@ fun ProductDetailScreen(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Volver",
-                                tint = BrandAccent
+                                tint = colorScheme.primary
                             )
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = BrandDeepBlue.copy(alpha = 0.95f),
-                        navigationIconContentColor = BrandAccent,
-                        titleContentColor = BrandAccent
+                        containerColor = colorScheme.surface,
+                        navigationIconContentColor = colorScheme.primary,
+                        titleContentColor = colorScheme.onSurface
                     )
                 )
             }
@@ -109,13 +101,13 @@ fun ProductDetailScreen(
                     ) {
                         Text(
                             text = "No encontramos la información de este producto.",
-                            style = MaterialTheme.typography.bodyLarge.copy(color = BrandAccent)
+                            style = MaterialTheme.typography.bodyLarge.copy(color = colorScheme.onBackground)
                         )
                         Button(
                             onClick = onBack,
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = BrandAccent,
-                                contentColor = BrandDeepBlue
+                                containerColor = colorScheme.primary,
+                                contentColor = colorScheme.onPrimary
                             )
                         ) {
                             Text(text = "Volver")
@@ -155,27 +147,27 @@ fun ProductDetailScreen(
                             Text(
                                 text = producto.nombre,
                                 style = MaterialTheme.typography.headlineSmall.copy(
-                                    color = BrandAccent,
+                                    color = colorScheme.onBackground,
                                     fontWeight = FontWeight.SemiBold
                                 )
                             )
                             Text(
                                 text = producto.categoria,
                                 style = MaterialTheme.typography.labelLarge.copy(
-                                    color = BrandAccent.copy(alpha = 0.85f),
+                                    color = colorScheme.secondary,
                                     fontWeight = FontWeight.Medium
                                 )
                             )
                             Text(
                                 text = "Código: ${producto.codigo}",
                                 style = MaterialTheme.typography.bodyMedium.copy(
-                                    color = BrandAccent.copy(alpha = 0.8f)
+                                    color = colorScheme.onSurfaceVariant
                                 )
                             )
                             Text(
                                 text = "$${producto.precio} CLP",
                                 style = MaterialTheme.typography.titleLarge.copy(
-                                    color = BrandAccent,
+                                    color = colorScheme.primary,
                                     fontWeight = FontWeight.Bold
                                 )
                             )
@@ -183,8 +175,8 @@ fun ProductDetailScreen(
                                 onClick = { onAddToCart(producto) },
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = BrandAccent,
-                                    contentColor = BrandDeepBlue
+                                    containerColor = colorScheme.secondary,
+                                    contentColor = colorScheme.onSecondary
                                 )
                             ) {
                                 Text(text = "Agregar al carrito")
@@ -199,20 +191,20 @@ fun ProductDetailScreen(
                             Text(
                                 text = "Descripción",
                                 style = MaterialTheme.typography.titleMedium.copy(
-                                    color = BrandAccent,
+                                    color = colorScheme.primary,
                                     fontWeight = FontWeight.SemiBold
                                 )
                             )
                             Card(
                                 colors = CardDefaults.cardColors(
-                                    containerColor = BrandDeepBlue.copy(alpha = 0.7f)
+                                    containerColor = colorScheme.surfaceVariant
                                 ),
                                 shape = RoundedCornerShape(16.dp)
                             ) {
                                 Text(
                                     text = producto.descripcion,
                                     style = MaterialTheme.typography.bodyMedium.copy(
-                                        color = BrandAccent.copy(alpha = 0.9f)
+                                        color = colorScheme.onBackground
                                     ),
                                     modifier = Modifier.padding(16.dp)
                                 )
@@ -225,11 +217,11 @@ fun ProductDetailScreen(
                             Column(
                                 verticalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                Divider(color = BrandAccent.copy(alpha = 0.2f))
+                                Divider(color = colorScheme.outline.copy(alpha = 0.4f))
                                 Text(
                                     text = "También te puede interesar",
                                     style = MaterialTheme.typography.titleMedium.copy(
-                                        color = BrandAccent,
+                                        color = colorScheme.primary,
                                         fontWeight = FontWeight.SemiBold
                                     )
                                 )
@@ -263,11 +255,12 @@ private fun RelatedProductCard(
     onViewDetail: () -> Unit,
     onAddToCart: () -> Unit
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     Card(
         modifier = Modifier
             .width(220.dp),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = BrandDeepBlue.copy(alpha = 0.75f))
+        colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceVariant)
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -292,7 +285,7 @@ private fun RelatedProductCard(
                 Text(
                     text = producto.nombre,
                     style = MaterialTheme.typography.titleSmall.copy(
-                        color = BrandAccent,
+                        color = colorScheme.onBackground,
                         fontWeight = FontWeight.Medium
                     ),
                     maxLines = 2,
@@ -301,7 +294,7 @@ private fun RelatedProductCard(
                 Text(
                     text = "$${producto.precio} CLP",
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        color = BrandAccent.copy(alpha = 0.9f),
+                        color = colorScheme.primary,
                         fontWeight = FontWeight.Medium
                     )
                 )
@@ -310,8 +303,8 @@ private fun RelatedProductCard(
                 onClick = onAddToCart,
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = BrandAccent,
-                    contentColor = BrandDeepBlue
+                    containerColor = colorScheme.secondary,
+                    contentColor = colorScheme.onSecondary
                 )
             ) {
                 Text(text = "Agregar al carrito")
@@ -322,7 +315,7 @@ private fun RelatedProductCard(
             ) {
                 Text(
                     text = "Ver detalle",
-                    color = BrandAccent,
+                    color = colorScheme.primary,
                     fontWeight = FontWeight.Medium
                 )
             }
