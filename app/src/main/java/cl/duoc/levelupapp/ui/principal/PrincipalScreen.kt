@@ -129,7 +129,6 @@ sealed interface LocationUiState {
 fun PrincipalScreen(
     onLogout: () -> Unit,
     onCartClick: () -> Unit = {},
-    onProductSelected: (String) -> Unit = {},
     viewModel: PrincipalViewModel = viewModel(),
     carritoViewModel: CarritoViewModel = viewModel()
 ) {
@@ -449,8 +448,7 @@ fun PrincipalScreen(
                     items(displayedProducts, key = { it.codigo }) { product ->
                         ProductCard(
                             producto = product,
-                            onAddToCart = { carritoViewModel.agregarProducto(product) },
-                            onClick = { onProductSelected(product.codigo) }
+                            onAddToCart = { carritoViewModel.agregarProducto(product) }
                         )
                     }
                 }
@@ -582,21 +580,10 @@ private fun CategoryChip(
 @Composable
 private fun ProductCard(
     producto: Producto,
-    onAddToCart: () -> Unit,
-    onClick: (() -> Unit)? = null
+    onAddToCart: () -> Unit
 ) {
-    val cardModifier = Modifier
-        .fillMaxWidth()
-        .let { base ->
-            if (onClick != null) {
-                base.clickable(onClick = onClick)
-            } else {
-                base
-            }
-        }
-
     Card(
-        modifier = cardModifier,
+        modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = BrandDeepBlue.copy(alpha = 0.7f)
         ),
