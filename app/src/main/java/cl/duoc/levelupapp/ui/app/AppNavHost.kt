@@ -1,9 +1,9 @@
 package cl.duoc.levelupapp.ui.app
 
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -22,7 +22,8 @@ import cl.duoc.levelupapp.ui.principal.ProductDetailScreen
 @Composable
 fun AppNavHost() {
     val nav = rememberNavController()
-    val activity = LocalContext.current as ComponentActivity
+    val activity = LocalActivity.current
+        ?: error("AppNavHost must be hosted in a ComponentActivity")
     val carritoViewModel: CarritoViewModel = viewModel(activity)
     val principalViewModel: PrincipalViewModel = viewModel(activity)
 
