@@ -10,7 +10,9 @@ import android.location.Location
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -416,7 +418,7 @@ fun PrincipalScreen(
     }
 }
 
-@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun CarouselSection() {
     val pagerState = rememberPagerState(pageCount = { carouselItems.size })
@@ -495,9 +497,9 @@ private fun CategoryChip(
             containerColor = if (selected) BrandAccent.copy(alpha = 0.3f) else BrandAccent.copy(alpha = 0.15f),
             labelColor = BrandAccent
         ),
-        border = AssistChipDefaults.assistChipBorder(
-            borderColor = if (selected) BrandAccent else BrandAccent.copy(alpha = 0.4f),
-            borderWidth = 1.dp
+        border = BorderStroke(
+            width = 1.dp,
+            color = if (selected) BrandAccent else BrandAccent.copy(alpha = 0.4f)
         )
     )
 }
