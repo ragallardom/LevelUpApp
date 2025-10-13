@@ -53,5 +53,18 @@ class LoginViewModel(
         }
     }
 
+    fun onRecoverPassword() {
+        val email = _ui.value.email
+        val message = if (email.isBlank()) {
+            "Ingresa tu correo electrónico para recuperar tu contraseña"
+        } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            "Ingresa un correo electrónico válido"
+        } else {
+            "Te enviaremos instrucciones a $email"
+        }
+
+        _ui.update { it.copy(message = message, error = null) }
+    }
+
     fun messageConsumed() { _ui.update { it.copy(message = null) } }
 }
