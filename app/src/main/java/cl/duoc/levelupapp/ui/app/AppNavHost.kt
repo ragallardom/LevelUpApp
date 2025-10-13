@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import cl.duoc.levelupapp.ui.home.HomeScreen
 import cl.duoc.levelupapp.ui.login.LoginScreen
+import cl.duoc.levelupapp.ui.principal.PrincipalScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,6 +30,22 @@ fun AppNavHost() {
                 onLoginSuccess = {
                     nav.navigate(Route.Principal.path) {
                         launchSingleTop = true
+                        popUpTo(Route.HomeRoot.path) {
+                            inclusive = false
+                        }
+                    }
+                }
+            )
+        }
+
+        composable(Route.Principal.path) {
+            PrincipalScreen(
+                onLogout = {
+                    nav.navigate(Route.HomeRoot.path) {
+                        launchSingleTop = true
+                        popUpTo(Route.HomeRoot.path) {
+                            inclusive = true
+                        }
                     }
                 }
             )
