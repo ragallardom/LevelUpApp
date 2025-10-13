@@ -85,6 +85,7 @@ private fun Producto.precioComoEntero(): Int {
 }
 
 private fun formatCurrency(value: Int): String {
-    val formatter = NumberFormat.getNumberInstance(Locale("es", "CL"))
+    val locale = Locale.forLanguageTag("es-CL")
+    val formatter = NumberFormat.getNumberInstance(locale)
     return formatter.format(value)
 }
