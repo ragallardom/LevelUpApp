@@ -108,7 +108,9 @@ class LoginViewModel(
     }
 
     private fun mapFirebaseError(throwable: Throwable): String = when (throwable) {
-        is FirebaseNetworkException -> "Error de red. Revisa tu conexión e inténtalo nuevamente."
+        is FirebaseNetworkException ->
+            "No pudimos contactar a los servicios de autenticación. " +
+                "Verifica tu conexión a internet, desactiva VPN o proxies y confirma que Google Play Services esté actualizado antes de reintentar."
         is FirebaseAuthInvalidCredentialsException -> "Credenciales inválidas. Verifica tu correo y contraseña."
         is FirebaseAuthInvalidUserException -> "No existe un usuario registrado con este correo."
         else -> throwable.localizedMessage?.takeIf { it.isNotBlank() }
