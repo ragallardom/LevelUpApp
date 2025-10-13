@@ -16,7 +16,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -25,7 +24,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -42,11 +40,10 @@ fun CarritoScreen(
     viewModel: CarritoViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val colorScheme = MaterialTheme.colorScheme
 
     Scaffold(
-        containerColor = colorScheme.background,
-        contentColor = colorScheme.onSurface,
+        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        contentColor = MaterialTheme.colorScheme.onSurface,
         topBar = {
             TopAppBar(
                 title = { Text(text = "Tu carrito") },
@@ -57,19 +54,14 @@ fun CarritoScreen(
                             contentDescription = "Volver"
                         )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = colorScheme.surface,
-                    titleContentColor = colorScheme.onSurface,
-                    navigationIconContentColor = colorScheme.primary
-                )
+                }
             )
         }
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(colorScheme.background)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .padding(padding)
                 .padding(horizontal = 16.dp)
                 .navigationBarsPadding(),
@@ -101,13 +93,12 @@ fun CarritoScreen(
                 ) {
                     Text(
                         text = "Total de productos: ${uiState.totalItems}",
-                        style = MaterialTheme.typography.bodyLarge.copy(color = colorScheme.onBackground)
+                        style = MaterialTheme.typography.bodyLarge
                     )
                     Text(
                         text = "Total a pagar: $${uiState.formattedTotal} CLP",
                         style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.SemiBold,
-                            color = colorScheme.secondary
+                            fontWeight = FontWeight.SemiBold
                         )
                     )
                     Row(
@@ -116,18 +107,13 @@ fun CarritoScreen(
                     ) {
                         OutlinedButton(
                             onClick = { viewModel.limpiarCarrito() },
-                            modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = colorScheme.primary)
+                            modifier = Modifier.weight(1f)
                         ) {
                             Text(text = "Limpiar carrito")
                         }
                         Button(
                             onClick = {},
-                            modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = colorScheme.primary,
-                                contentColor = colorScheme.onPrimary
-                            )
+                            modifier = Modifier.weight(1f)
                         ) {
                             Text(text = "Pagar")
                         }
@@ -149,7 +135,7 @@ private fun EmptyCartState() {
     ) {
         Text(
             text = "Tu carrito está vacío",
-            style = MaterialTheme.typography.titleMedium.copy(color = MaterialTheme.colorScheme.onBackground),
+            style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold
         )
         Text(

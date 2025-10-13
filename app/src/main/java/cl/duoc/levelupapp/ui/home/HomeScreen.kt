@@ -1,13 +1,21 @@
 package cl.duoc.levelupapp.ui.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import cl.duoc.levelupapp.ui.home.components.AnimatedLogo
+
+private val BrandShadow = Color(0xFF000000)
+private val BrandMidnight = Color(0xFF010E1C)
+private val BrandDeepBlue = Color(0xFF01142E)
+private val BrandAccent = Color(0xFFA8BFCD)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -18,20 +26,25 @@ fun HomeScreen(
 ) {
     Scaffold(
         contentWindowInsets = WindowInsets(0,0,0,0),
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = Color.Transparent,
         topBar = {
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
                     // Altura estándar de una TopAppBar pequeña. Puedes ajustarla si quieres.
                     .height(22.dp),
-                color = MaterialTheme.colorScheme.surface // Le damos el color de fondo deseado
+                color = BrandDeepBlue // Le damos el color de fondo deseado
             ) {}
         }
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(BrandShadow, BrandMidnight, BrandDeepBlue)
+                    )
+                )
                 .padding(innerPadding)
         ) {
             HomeContent(
@@ -74,8 +87,8 @@ private fun HomeContent(
                 onClick = onLoginClick,
                 modifier = Modifier.fillMaxWidth(0.6f),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
+                    containerColor = BrandAccent,
+                    contentColor = BrandDeepBlue
                 )
             ) {
                 Text("Login")
@@ -83,17 +96,13 @@ private fun HomeContent(
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 TextButton(
                     onClick = onRegisterClick,
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = MaterialTheme.colorScheme.secondary
-                    )
+                    colors = ButtonDefaults.textButtonColors(contentColor = BrandAccent)
                 ) {
                     Text("Registrarse")
                 }
                 TextButton(
                     onClick = onRecoverClick,
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = MaterialTheme.colorScheme.secondary
-                    )
+                    colors = ButtonDefaults.textButtonColors(contentColor = BrandAccent)
                 ) {
                     Text("Recuperar contraseña")
                 }

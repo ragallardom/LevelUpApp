@@ -21,7 +21,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,10 +41,9 @@ fun UiCarritoCard(
     onDecrease: () -> Unit,
     onRemove: () -> Unit
 ) {
-    val colorScheme = MaterialTheme.colorScheme
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceVariant)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Row(
             modifier = Modifier
@@ -62,43 +60,31 @@ fun UiCarritoCard(
             ) {
                 Text(
                     text = item.producto.nombre,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.SemiBold,
-                        color = colorScheme.onBackground
-                    )
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
                 )
                 Text(
                     text = "$${item.producto.precio} CLP",
-                    style = MaterialTheme.typography.bodyMedium.copy(color = colorScheme.onSurfaceVariant)
+                    style = MaterialTheme.typography.bodyMedium
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    IconButton(
-                        onClick = onDecrease,
-                        colors = IconButtonDefaults.iconButtonColors(contentColor = colorScheme.primary)
-                    ) {
+                    IconButton(onClick = onDecrease) {
                         Icon(imageVector = Icons.Filled.Remove, contentDescription = "Disminuir cantidad")
                     }
                     Text(
                         text = item.cantidad.toString(),
-                        style = MaterialTheme.typography.titleMedium.copy(color = colorScheme.onBackground),
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
                     )
-                    IconButton(
-                        onClick = onIncrease,
-                        colors = IconButtonDefaults.iconButtonColors(contentColor = colorScheme.primary)
-                    ) {
+                    IconButton(onClick = onIncrease) {
                         Icon(imageVector = Icons.Filled.Add, contentDescription = "Aumentar cantidad")
                     }
                     Spacer(modifier = Modifier.weight(1f))
                     ElevatedButton(
                         onClick = onRemove,
-                        colors = ButtonDefaults.elevatedButtonColors(
-                            containerColor = colorScheme.secondary,
-                            contentColor = colorScheme.onSecondary
-                        )
+                        colors = ButtonDefaults.elevatedButtonColors()
                     ) {
                         Icon(imageVector = Icons.Filled.Delete, contentDescription = "Quitar del carrito")
                         Spacer(modifier = Modifier.width(8.dp))
