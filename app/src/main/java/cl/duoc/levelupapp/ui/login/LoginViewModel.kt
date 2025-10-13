@@ -5,6 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cl.duoc.levelupapp.model.User
 import cl.duoc.levelupapp.repository.auth.AuthRepository
+import com.google.firebase.FirebaseNetworkException
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -45,13 +48,37 @@ class LoginViewModel(
         }
         viewModelScope.launch {
             _ui.update { it.copy(loading = true, error = null, message = null) }
-            val user = repo.login(_ui.value.email, _ui.value.password)
-            _ui.update {
-                if (user != null) it.copy(loading = false, loggedIn = true, user = user, message = "Ingreso exitoso")
-                else it.copy(loading = false, error = "Error al iniciar sesión")
-            }
+            val result = repo.login(_ui.value.email, _ui.value.password)
+            result.fold(
+                onSuccess = { user ->
+                    _ui.update {
+                        it.copy(
+                            loading = false,
+                            loggedIn = true,
+                            user = user,
+                            message = "Ingreso exitoso"
+                        )
+                    }
+                },
+                onFailure = { throwable ->
+                    _ui.update {
+                        it.copy(
+                            loading = false,
+                            error = mapFirebaseError(throwable)
+                        )
+                    }
+                }
+            )
         }
     }
 
     fun messageConsumed() { _ui.update { it.copy(message = null) } }
+
+    private fun mapFirebaseError(throwable: Throwable): String = when (throwable) {
+        is FirebaseNetworkException -> "Error de red. Revisa tu conexión e inténtalo nuevamente."
+        is FirebaseAuthInvalidCredentialsException -> "Credenciales inválidas. Verifica tu correo y contraseña."
+        is FirebaseAuthInvalidUserException -> "No existe un usuario registrado con este correo."
+        else -> throwable.localizedMessage?.takeIf { it.isNotBlank() }
+            ?: "Error al iniciar sesión"
+    }
 }
