@@ -106,9 +106,9 @@ data class CarouselItem(
 )
 
 private val carouselItems = listOf(
-    CarouselItem(R.drawable.logo, "Promociones Exclusivas"),
-    CarouselItem(R.drawable.logo, "Novedades Gaming"),
-    CarouselItem(R.drawable.logo, "Tu Setup Ideal")
+    CarouselItem(R.drawable.promociones_exclusivas, "Promociones Exclusivas"),
+    CarouselItem(R.drawable.novedades_gaming, "Novedades Gaming"),
+    CarouselItem(R.drawable.setup_ideal, "Arma tu setup ideal")
 )
 
 enum class BottomOption { HOME, ACCOUNT, CATEGORIES, ORDERS, LOGOUT }
