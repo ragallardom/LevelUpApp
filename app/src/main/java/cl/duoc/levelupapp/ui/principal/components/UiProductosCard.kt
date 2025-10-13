@@ -4,7 +4,6 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Column
@@ -33,6 +32,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import cl.duoc.levelupapp.R
 import cl.duoc.levelupapp.model.Producto
+import coil.compose.AsyncImage
 
 @Composable
 fun UiProductosCard(
@@ -54,13 +54,15 @@ fun UiProductosCard(
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.logo),
+            AsyncImage(
+                model = producto.imagenUrl,
                 contentDescription = producto.nombre,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(140.dp),
-                contentScale = ContentScale.Fit
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(id = R.drawable.logo),
+                error = painterResource(id = R.drawable.logo)
             )
 
             Spacer(Modifier.height(12.dp))
