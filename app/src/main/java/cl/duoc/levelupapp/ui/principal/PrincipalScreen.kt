@@ -10,7 +10,6 @@ import android.location.Location
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
@@ -478,12 +477,14 @@ private fun CarouselSection() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CategoryChip(
     text: String,
     selected: Boolean,
     onClick: () -> Unit
 ) {
+    val chipBorderColor = if (selected) BrandAccent else BrandAccent.copy(alpha = 0.4f)
     AssistChip(
         onClick = onClick,
         label = {
@@ -497,9 +498,9 @@ private fun CategoryChip(
             containerColor = if (selected) BrandAccent.copy(alpha = 0.3f) else BrandAccent.copy(alpha = 0.15f),
             labelColor = BrandAccent
         ),
-        border = BorderStroke(
-            width = 1.dp,
-            color = if (selected) BrandAccent else BrandAccent.copy(alpha = 0.4f)
+        border = AssistChipDefaults.assistChipBorder(
+            borderColor = chipBorderColor,
+            borderWidth = 1.dp
         )
     )
 }
