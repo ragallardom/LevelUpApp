@@ -10,6 +10,7 @@ import android.location.Location
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -353,16 +354,9 @@ fun PrincipalScreen(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         items(categories) { category ->
-                            AssistChip(
-                                onClick = { /* TODO: navegar a categoría */ },
-                                label = { Text(category) },
-                                colors = AssistChipDefaults.assistChipColors(
-                                    containerColor = BrandAccent.copy(alpha = 0.15f),
-                                    labelColor = BrandAccent
-                                ),
-                                border = AssistChipDefaults.assistChipBorder(
-                                    borderColor = BrandAccent.copy(alpha = 0.4f)
-                                )
+                            CategoryChip(
+                                text = category,
+                                onClick = { /* TODO: navegar a categoría */ }
                             )
                         }
                     }
@@ -443,6 +437,26 @@ private fun CarouselSection() {
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun CategoryChip(
+    text: String,
+    onClick: () -> Unit
+) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(24.dp),
+        color = BrandAccent.copy(alpha = 0.15f),
+        border = BorderStroke(1.dp, BrandAccent.copy(alpha = 0.4f)),
+        contentColor = BrandAccent
+    ) {
+        Text(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            text = text,
+            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
+        )
     }
 }
 
