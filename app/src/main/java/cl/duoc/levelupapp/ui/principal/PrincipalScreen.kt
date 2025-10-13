@@ -322,17 +322,26 @@ fun PrincipalScreen(
                                 focusedPlaceholderColor = BrandAccent.copy(alpha = 0.7f)
                             )
                         )
-                        Surface(
-                            modifier = Modifier.size(52.dp),
-                            shape = CircleShape,
-                            color = BrandAccent.copy(alpha = 0.2f)
-                        ) {
-                            BadgedBox(
-                                badge = {
-                                    if (carritoUiState.totalItems > 0) {
-                                        Badge { Text(text = carritoUiState.totalItems.toString()) }
+                        BadgedBox(
+                            badge = {
+                                if (carritoUiState.totalItems > 0) {
+                                    Badge(
+                                        containerColor = BrandAccent,
+                                        contentColor = Color.Black
+                                    ) {
+                                        Text(
+                                            text = carritoUiState.totalItems.toString(),
+                                            modifier = Modifier.padding(horizontal = 4.dp),
+                                            maxLines = 1
+                                        )
                                     }
                                 }
+                            }
+                        ) {
+                            Surface(
+                                modifier = Modifier.size(56.dp),
+                                shape = CircleShape,
+                                color = BrandAccent.copy(alpha = 0.2f)
                             ) {
                                 IconButton(onClick = onCartClick) {
                                     Icon(
