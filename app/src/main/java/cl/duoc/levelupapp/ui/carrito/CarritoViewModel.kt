@@ -43,30 +43,6 @@ class CarritoViewModel : ViewModel() {
         _uiState.value = CarritoUiState(items = itemsActuales)
     }
 
-    fun incrementarCantidad(codigoProducto: String) {
-        val itemsActuales = _uiState.value.items.toMutableList()
-        val indice = itemsActuales.indexOfFirst { it.producto.codigo == codigoProducto }
-        if (indice >= 0) {
-            val item = itemsActuales[indice]
-            itemsActuales[indice] = item.copy(cantidad = item.cantidad + 1)
-            _uiState.value = CarritoUiState(items = itemsActuales)
-        }
-    }
-
-    fun decrementarCantidad(codigoProducto: String) {
-        val itemsActuales = _uiState.value.items.toMutableList()
-        val indice = itemsActuales.indexOfFirst { it.producto.codigo == codigoProducto }
-        if (indice >= 0) {
-            val item = itemsActuales[indice]
-            if (item.cantidad > 1) {
-                itemsActuales[indice] = item.copy(cantidad = item.cantidad - 1)
-            } else {
-                itemsActuales.removeAt(indice)
-            }
-            _uiState.value = CarritoUiState(items = itemsActuales)
-        }
-    }
-
     fun quitarProducto(codigoProducto: String) {
         val itemsActuales = _uiState.value.items.filterNot { it.producto.codigo == codigoProducto }
         _uiState.value = CarritoUiState(items = itemsActuales)

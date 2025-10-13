@@ -33,8 +33,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import cl.duoc.levelupapp.ui.carrito.components.UiCarritoCard
 
-private val weight: Any
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CarritoScreen(
@@ -120,6 +118,8 @@ fun CarritoScreen(
                             Text(text = "Pagar")
                         }
                     }
+                }
+            }
         }
     }
 }
