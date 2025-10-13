@@ -2,14 +2,12 @@ package cl.duoc.levelupapp.ui.login
 
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import cl.duoc.levelupapp.model.User
 import cl.duoc.levelupapp.repository.auth.AuthRepository
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -26,8 +24,7 @@ data class LoginUiState(
 )
 
 class LoginViewModel(
-    private val repo: AuthRepository = AuthRepository(),
-    private val networkChecker: () -> Boolean = { true }
+    private val repo: AuthRepository = AuthRepository()
 ) : ViewModel() {
 
     private val _ui = MutableStateFlow(LoginUiState())
@@ -49,18 +46,9 @@ class LoginViewModel(
             _ui.update { it.copy(error = err) }
             return
         }
-        if (!networkChecker()) {
-            _ui.update {
-                it.copy(
-                    error = "Sin conexión a internet. Verifica tu red e inténtalo nuevamente.",
-                    loading = false
-                )
-            }
-            return
-        }
         viewModelScope.launch {
             _ui.update { it.copy(loading = true, error = null, message = null) }
-            val result = loginWithRetry(_ui.value.email, _ui.value.password)
+            val result = repo.login(_ui.value.email, _ui.value.password)
             result.fold(
                 onSuccess = { user ->
                     _ui.update {
@@ -86,45 +74,11 @@ class LoginViewModel(
 
     fun messageConsumed() { _ui.update { it.copy(message = null) } }
 
-    private suspend fun loginWithRetry(email: String, password: String, maxAttempts: Int = 2): Result<User> {
-        var attempt = 0
-        var lastNetworkError: Throwable? = null
-        while (attempt < maxAttempts) {
-            val result = repo.login(email, password)
-            if (result.isSuccess) {
-                return result
-            }
-            val error = result.exceptionOrNull()
-            if (error !is FirebaseNetworkException) {
-                return Result.failure(error ?: IllegalStateException("Error desconocido"))
-            }
-            lastNetworkError = error
-            attempt++
-            if (attempt < maxAttempts) {
-                delay(800)
-            }
-        }
-        return Result.failure(lastNetworkError ?: FirebaseNetworkException("Error de red"))
-    }
-
     private fun mapFirebaseError(throwable: Throwable): String = when (throwable) {
         is FirebaseNetworkException -> "Error de red. Revisa tu conexión e inténtalo nuevamente."
         is FirebaseAuthInvalidCredentialsException -> "Credenciales inválidas. Verifica tu correo y contraseña."
         is FirebaseAuthInvalidUserException -> "No existe un usuario registrado con este correo."
         else -> throwable.localizedMessage?.takeIf { it.isNotBlank() }
             ?: "Error al iniciar sesión"
-    }
-}
-
-class LoginViewModelFactory(
-    private val repo: AuthRepository = AuthRepository(),
-    private val networkChecker: () -> Boolean
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(LoginViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return LoginViewModel(repo, networkChecker) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class: ${'$'}modelClass")
     }
 }
