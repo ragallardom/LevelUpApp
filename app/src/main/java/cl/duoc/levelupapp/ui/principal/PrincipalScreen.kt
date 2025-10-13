@@ -444,7 +444,6 @@ fun PrincipalScreen(
         }
     }
 }
-}
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
