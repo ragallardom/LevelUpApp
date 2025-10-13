@@ -1,10 +1,15 @@
 package cl.duoc.levelupapp.ui.app
 
+import androidx.activity.ComponentActivity
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import cl.duoc.levelupapp.ui.carrito.CarritoScreen
+import cl.duoc.levelupapp.ui.carrito.CarritoViewModel
 import cl.duoc.levelupapp.ui.home.HomeScreen
 import cl.duoc.levelupapp.ui.login.LoginScreen
 import cl.duoc.levelupapp.ui.principal.PrincipalScreen
@@ -13,6 +18,8 @@ import cl.duoc.levelupapp.ui.principal.PrincipalScreen
 @Composable
 fun AppNavHost() {
     val nav = rememberNavController()
+    val activity = LocalContext.current as ComponentActivity
+    val carritoViewModel: CarritoViewModel = viewModel(activity)
 
     NavHost(navController = nav, startDestination = Route.HomeRoot.path) {
 
@@ -47,7 +54,16 @@ fun AppNavHost() {
                             inclusive = true
                         }
                     }
-                }
+                },
+                onCartClick = { nav.navigate(Route.Cart.path) },
+                carritoViewModel = carritoViewModel
+            )
+        }
+
+        composable(Route.Cart.path) {
+            CarritoScreen(
+                onBack = { nav.popBackStack() },
+                viewModel = carritoViewModel
             )
         }
     }
