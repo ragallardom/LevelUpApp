@@ -8,46 +8,26 @@ import kotlin.coroutines.resume
 class FirebaseAuthDataSource(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 ) {
-    suspend fun signIn(email: String, pass: String): Result<FirebaseUser> =
+    suspend fun signIn(email: String, pass: String): FirebaseUser? =
         suspendCancellableCoroutine { cont ->
             auth.signInWithEmailAndPassword(email, pass)
-                .addOnSuccessListener { result ->
-                    val user = result.user
-                    if (user != null) {
-                        cont.resume(Result.success(user))
-                    } else {
-                        cont.resume(Result.failure(IllegalStateException("Usuario de Firebase nulo")))
-                    }
-                }
-                .addOnFailureListener { exception ->
-                    cont.resume(Result.failure(exception))
-                }
+                .addOnSuccessListener { cont.resume(it.user) }
+                .addOnFailureListener { cont.resume(null) }
         }
 
 
-    suspend fun signUp(email: String, pass: String): Result<FirebaseUser> =
+    suspend fun signUp(email: String, pass: String): FirebaseUser? =
         suspendCancellableCoroutine { cont ->
             auth.createUserWithEmailAndPassword(email, pass)
-                .addOnSuccessListener { result ->
-                    val user = result.user
-                    if (user != null) {
-                        cont.resume(Result.success(user))
-                    } else {
-                        cont.resume(Result.failure(IllegalStateException("Usuario de Firebase nulo")))
-                    }
-                }
-                .addOnFailureListener { exception ->
-                    cont.resume(Result.failure(exception))
-                }
+                .addOnSuccessListener { cont.resume(it.user) }
+                .addOnFailureListener { cont.resume(null) }
         }
 
-    suspend fun sendPasswordReset(email: String): Result<Unit> =
+    suspend fun sendPasswordReset(email: String): Boolean =
         suspendCancellableCoroutine { cont ->
             auth.sendPasswordResetEmail(email)
-                .addOnSuccessListener { cont.resume(Result.success(Unit)) }
-                .addOnFailureListener { exception ->
-                    cont.resume(Result.failure(exception))
-                }
+                .addOnSuccessListener { cont.resume(true) }
+                .addOnFailureListener { cont.resume(false) }
         }
 
 
