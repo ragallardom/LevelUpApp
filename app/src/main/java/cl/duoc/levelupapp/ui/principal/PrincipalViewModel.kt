@@ -69,4 +69,12 @@ class PrincipalViewModel : ViewModel() {
             fuente.filter { it.categoria == cat }
         }
     }
+
+    fun obtenerProductoPorCodigo(codigo: String): Producto? {
+        return fuente.firstOrNull { it.codigo == codigo }
+    }
+
+    fun productosRelacionados(categoria: String, excluirCodigo: String): List<Producto> {
+        return fuente.filter { it.categoria == categoria && it.codigo != excluirCodigo }
+    }
 }

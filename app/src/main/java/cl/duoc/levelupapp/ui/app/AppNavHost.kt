@@ -5,14 +5,18 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import cl.duoc.levelupapp.ui.carrito.CarritoScreen
 import cl.duoc.levelupapp.ui.carrito.CarritoViewModel
 import cl.duoc.levelupapp.ui.home.HomeScreen
 import cl.duoc.levelupapp.ui.login.LoginScreen
 import cl.duoc.levelupapp.ui.principal.PrincipalScreen
+import cl.duoc.levelupapp.ui.principal.PrincipalViewModel
+import cl.duoc.levelupapp.ui.principal.ProductDetailScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -20,6 +24,7 @@ fun AppNavHost() {
     val nav = rememberNavController()
     val activity = LocalContext.current as ComponentActivity
     val carritoViewModel: CarritoViewModel = viewModel(activity)
+    val principalViewModel: PrincipalViewModel = viewModel(activity)
 
     NavHost(navController = nav, startDestination = Route.HomeRoot.path) {
 
@@ -56,6 +61,12 @@ fun AppNavHost() {
                     }
                 },
                 onCartClick = { nav.navigate(Route.Cart.path) },
+                onProductSelected = { codigo ->
+                    nav.navigate(Route.ProductDetail.create(codigo)) {
+                        launchSingleTop = true
+                    }
+                },
+                viewModel = principalViewModel,
                 carritoViewModel = carritoViewModel
             )
         }
@@ -65,6 +76,32 @@ fun AppNavHost() {
                 onBack = { nav.popBackStack() },
                 viewModel = carritoViewModel
             )
+        }
+
+        composable(
+            route = Route.ProductDetail.path,
+            arguments = listOf(
+                navArgument(Route.ProductDetail.ARG_PRODUCTO_ID) { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val productoId = backStackEntry.arguments?.getString(Route.ProductDetail.ARG_PRODUCTO_ID)
+            if (productoId != null) {
+                ProductDetailScreen(
+                    productId = productoId,
+                    viewModel = principalViewModel,
+                    onBack = { nav.popBackStack() },
+                    onAddToCart = { producto -> carritoViewModel.agregarProducto(producto) },
+                    onNavigateToProduct = { codigo ->
+                        if (codigo != productoId) {
+                            nav.navigate(Route.ProductDetail.create(codigo)) {
+                                launchSingleTop = true
+                            }
+                        }
+                    }
+                )
+            } else {
+                nav.popBackStack()
+            }
         }
     }
 }
