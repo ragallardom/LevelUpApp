@@ -10,6 +10,7 @@ import android.location.Location
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
@@ -31,6 +32,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Logout
@@ -248,7 +250,7 @@ fun PrincipalScreen(
                         selectedOption = BottomOption.LOGOUT
                         viewModel.logout()
                     },
-                    icon = { Icon(Icons.Default.Logout, contentDescription = "Logout") },
+                    icon = { Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Logout") },
                     label = { Text("Logout") },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = BrandDeepBlue,
@@ -477,14 +479,12 @@ private fun CarouselSection() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CategoryChip(
     text: String,
     selected: Boolean,
     onClick: () -> Unit
 ) {
-    val chipBorderColor = if (selected) BrandAccent else BrandAccent.copy(alpha = 0.4f)
     AssistChip(
         onClick = onClick,
         label = {
@@ -498,9 +498,9 @@ private fun CategoryChip(
             containerColor = if (selected) BrandAccent.copy(alpha = 0.3f) else BrandAccent.copy(alpha = 0.15f),
             labelColor = BrandAccent
         ),
-        border = AssistChipDefaults.assistChipBorder(
-            borderColor = chipBorderColor,
-            borderWidth = 1.dp
+        border = BorderStroke(
+            width = 1.dp,
+            color = if (selected) BrandAccent else BrandAccent.copy(alpha = 0.4f)
         )
     )
 }
