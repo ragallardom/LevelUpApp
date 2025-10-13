@@ -63,4 +63,5 @@ dependencies {
     implementation(libs.androidx.navigation.compose.v282)
     implementation("androidx.compose.foundation:foundation")
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
+    implementation("com.google.android.gms:play-services-location:21.3.0")
 }
