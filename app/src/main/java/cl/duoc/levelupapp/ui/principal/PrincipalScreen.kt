@@ -90,7 +90,6 @@ import cl.duoc.levelupapp.R
 import cl.duoc.levelupapp.ui.carrito.CarritoViewModel
 import cl.duoc.levelupapp.model.Producto
 import cl.duoc.levelupapp.ui.theme.LevelUppAppTheme
-import cl.duoc.levelupapp.ui.theme.TechBackground
 import com.google.android.gms.location.LocationServices
 import java.io.IOException
 import java.util.Locale
@@ -192,32 +191,29 @@ fun PrincipalScreen(
 
     val colorScheme = MaterialTheme.colorScheme
 
-    TechBackground {
-        Scaffold(
-            containerColor = Color.Transparent,
-            topBar = {
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(28.dp),
-                    color = colorScheme.surface.copy(alpha = 0.75f),
-                    tonalElevation = 10.dp,
-                    shadowElevation = 14.dp,
-                    content = {}
+    Scaffold(
+        containerColor = colorScheme.background,
+        topBar = {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(24.dp),
+                color = colorScheme.surface,
+                content = {}
+            )
+        },
+        bottomBar = {
+            NavigationBar(
+                containerColor = colorScheme.surface,
+                contentColor = colorScheme.onSurface
+            ) {
+                val navItemColors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = colorScheme.onSecondary,
+                    selectedTextColor = colorScheme.secondary,
+                    unselectedIconColor = colorScheme.onSurfaceVariant,
+                    unselectedTextColor = colorScheme.onSurfaceVariant,
+                    indicatorColor = colorScheme.secondary
                 )
-            },
-            bottomBar = {
-                NavigationBar(
-                    containerColor = colorScheme.surface.copy(alpha = 0.85f),
-                    contentColor = colorScheme.onSurface
-                ) {
-                    val navItemColors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = colorScheme.onSecondary,
-                        selectedTextColor = colorScheme.secondary,
-                        unselectedIconColor = colorScheme.onSurfaceVariant,
-                        unselectedTextColor = colorScheme.onSurfaceVariant,
-                        indicatorColor = colorScheme.secondary.copy(alpha = 0.35f)
-                    )
                 NavigationBarItem(
                     selected = selectedOption == BottomOption.HOME,
                     onClick = {
@@ -260,28 +256,21 @@ fun PrincipalScreen(
                     colors = navItemColors
                 )
             }
-            }
-        ) { innerPadding ->
-            Surface(
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(colorScheme.background)
+        ) {
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
-                    .padding(horizontal = 12.dp, vertical = 16.dp),
-                color = colorScheme.surface.copy(alpha = 0.32f),
-                tonalElevation = 12.dp,
-                shadowElevation = 18.dp,
-                shape = RoundedCornerShape(32.dp)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(bottom = 32.dp, top = 24.dp)
             ) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    contentPadding = PaddingValues(
-                        start = 20.dp,
-                        end = 20.dp,
-                        top = 28.dp,
-                        bottom = 36.dp
-                    )
-                ) {
                 item {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -303,10 +292,7 @@ fun PrincipalScreen(
                                 focusedLeadingIconColor = colorScheme.primary,
                                 unfocusedLeadingIconColor = colorScheme.onSurfaceVariant,
                                 unfocusedPlaceholderColor = colorScheme.onSurfaceVariant,
-                                focusedPlaceholderColor = colorScheme.onSurfaceVariant,
-                                focusedContainerColor = colorScheme.surface.copy(alpha = 0.28f),
-                                unfocusedContainerColor = colorScheme.surface.copy(alpha = 0.18f),
-                                disabledContainerColor = colorScheme.surface.copy(alpha = 0.12f)
+                                focusedPlaceholderColor = colorScheme.onSurfaceVariant
                             )
                         )
                         BadgedBox(
@@ -561,11 +547,7 @@ private fun CategoryChip(
         },
         shape = RoundedCornerShape(24.dp),
         colors = AssistChipDefaults.assistChipColors(
-            containerColor = if (selected) {
-                colorScheme.secondary.copy(alpha = 0.45f)
-            } else {
-                colorScheme.surface.copy(alpha = 0.24f)
-            },
+            containerColor = if (selected) colorScheme.secondary.copy(alpha = 0.3f) else colorScheme.secondary.copy(alpha = 0.12f),
             labelColor = if (selected) colorScheme.onSecondary else colorScheme.onBackground
         ),
         border = BorderStroke(
@@ -595,11 +577,9 @@ private fun ProductCard(
     Card(
         modifier = cardModifier,
         colors = CardDefaults.cardColors(
-            containerColor = colorScheme.surface.copy(alpha = 0.45f)
+            containerColor = colorScheme.surfaceVariant
         ),
-        shape = RoundedCornerShape(20.dp),
-        border = BorderStroke(1.dp, colorScheme.primary.copy(alpha = 0.25f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        shape = RoundedCornerShape(16.dp)
     ) {
         Row(
             modifier = Modifier
@@ -666,10 +646,8 @@ private fun LocationCard(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 120.dp),
-        colors = CardDefaults.cardColors(containerColor = colorScheme.surface.copy(alpha = 0.38f)),
-        shape = RoundedCornerShape(20.dp),
-        border = BorderStroke(1.dp, colorScheme.primary.copy(alpha = 0.2f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+        colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceVariant),
+        shape = RoundedCornerShape(16.dp)
     ) {
         Column(
             modifier = Modifier

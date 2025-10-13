@@ -1,7 +1,6 @@
 package cl.duoc.levelupapp.ui.carrito.components
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -45,10 +44,7 @@ fun UiCarritoCard(
     val colorScheme = MaterialTheme.colorScheme
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = colorScheme.surface.copy(alpha = 0.4f)),
-        shape = RoundedCornerShape(18.dp),
-        border = BorderStroke(1.dp, colorScheme.primary.copy(alpha = 0.2f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+        colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceVariant)
     ) {
         Row(
             modifier = Modifier

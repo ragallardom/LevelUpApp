@@ -1,7 +1,7 @@
 package cl.duoc.levelupapp.ui.principal
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,7 +27,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -42,7 +41,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import cl.duoc.levelupapp.model.Producto
-import cl.duoc.levelupapp.ui.theme.TechBackground
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,9 +56,13 @@ fun ProductDetailScreen(
     val relacionados = producto?.let { viewModel.productosRelacionados(it.categoria, it.codigo) }.orEmpty()
     val colorScheme = MaterialTheme.colorScheme
 
-    TechBackground {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(colorScheme.background)
+    ) {
         Scaffold(
-            containerColor = Color.Transparent,
+            containerColor = colorScheme.background,
             topBar = {
                 TopAppBar(
                     title = {
@@ -87,46 +89,41 @@ fun ProductDetailScreen(
                 )
             }
         ) { innerPadding ->
-            Surface(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(horizontal = 12.dp, vertical = 16.dp),
-                color = colorScheme.surface.copy(alpha = 0.32f),
-                shape = RoundedCornerShape(32.dp),
-                tonalElevation = 12.dp,
-                shadowElevation = 18.dp
-            ) {
-                if (producto == null) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+            if (producto == null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            Text(
-                                text = "No encontramos la información de este producto.",
-                                style = MaterialTheme.typography.bodyLarge.copy(color = colorScheme.onBackground)
+                        Text(
+                            text = "No encontramos la información de este producto.",
+                            style = MaterialTheme.typography.bodyLarge.copy(color = colorScheme.onBackground)
+                        )
+                        Button(
+                            onClick = onBack,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = colorScheme.primary,
+                                contentColor = colorScheme.onPrimary
                             )
-                            Button(
-                                onClick = onBack,
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = colorScheme.primary,
-                                    contentColor = colorScheme.onPrimary
-                                )
-                            ) {
-                                Text(text = "Volver")
-                            }
+                        ) {
+                            Text(text = "Volver")
                         }
                     }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(24.dp),
-                        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 32.dp)
-                    ) {
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(24.dp),
+                    contentPadding = PaddingValues(bottom = 32.dp)
+                ) {
                     item {
                         Card(
                             modifier = Modifier
@@ -201,11 +198,9 @@ fun ProductDetailScreen(
                             )
                             Card(
                                 colors = CardDefaults.cardColors(
-                                    containerColor = colorScheme.surface.copy(alpha = 0.4f)
+                                    containerColor = colorScheme.surfaceVariant
                                 ),
-                                shape = RoundedCornerShape(20.dp),
-                                border = BorderStroke(1.dp, colorScheme.primary.copy(alpha = 0.2f)),
-                                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+                                shape = RoundedCornerShape(16.dp)
                             ) {
                                 Text(
                                     text = producto.descripcion,
@@ -265,10 +260,8 @@ private fun RelatedProductCard(
     Card(
         modifier = Modifier
             .width(220.dp),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = colorScheme.surface.copy(alpha = 0.42f)),
-        border = BorderStroke(1.dp, colorScheme.primary.copy(alpha = 0.18f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceVariant)
     ) {
         Column(
             modifier = Modifier.padding(16.dp),

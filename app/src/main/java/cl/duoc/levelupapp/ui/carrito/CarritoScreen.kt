@@ -1,6 +1,7 @@
 package cl.duoc.levelupapp.ui.carrito
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -22,7 +23,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -31,12 +31,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.shape.RoundedCornerShape
 import cl.duoc.levelupapp.ui.carrito.components.UiCarritoCard
-import cl.duoc.levelupapp.ui.theme.TechBackground
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,106 +44,96 @@ fun CarritoScreen(
     val uiState by viewModel.uiState.collectAsState()
     val colorScheme = MaterialTheme.colorScheme
 
-    TechBackground {
-        Scaffold(
-            containerColor = Color.Transparent,
-            contentColor = colorScheme.onSurface,
-            topBar = {
-                TopAppBar(
-                    title = { Text(text = "Tu carrito") },
-                    navigationIcon = {
-                        IconButton(onClick = onBack) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Volver",
-                                tint = colorScheme.primary
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = colorScheme.surface.copy(alpha = 0.8f),
-                        titleContentColor = colorScheme.onBackground,
-                        navigationIconContentColor = colorScheme.primary
-                    )
+    Scaffold(
+        containerColor = colorScheme.background,
+        contentColor = colorScheme.onSurface,
+        topBar = {
+            TopAppBar(
+                title = { Text(text = "Tu carrito") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Volver"
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = colorScheme.surface,
+                    titleContentColor = colorScheme.onSurface,
+                    navigationIconContentColor = colorScheme.primary
                 )
-            }
-        ) { padding ->
-            Surface(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(horizontal = 12.dp, vertical = 16.dp)
-                    .navigationBarsPadding(),
-                color = colorScheme.surface.copy(alpha = 0.34f),
-                shape = RoundedCornerShape(28.dp),
-                tonalElevation = 12.dp,
-                shadowElevation = 18.dp
-            ) {
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(colorScheme.background)
+                .padding(padding)
+                .padding(horizontal = 16.dp)
+                .navigationBarsPadding(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            if (uiState.items.isEmpty()) {
+                EmptyCartState()
+            } else {
+                LazyColumn(
+                    modifier = Modifier.weight(1f, fill = false),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(vertical = 8.dp)
+                ) {
+                    items(uiState.items, key = { it.producto.codigo }) { item ->
+                        UiCarritoCard(
+                            item = item,
+                            onIncrease = { viewModel.incrementarCantidad(item.producto.codigo) },
+                            onDecrease = { viewModel.decrementarCantidad(item.producto.codigo) },
+                            onRemove = { viewModel.quitarProducto(item.producto.codigo) }
+                        )
+                    }
+                }
+
                 Column(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 20.dp, vertical = 24.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                        .fillMaxWidth()
+                        .padding(bottom = 24.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    if (uiState.items.isEmpty()) {
-                        EmptyCartState()
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier.weight(1f, fill = false),
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
-                            contentPadding = PaddingValues(vertical = 8.dp)
+                    Text(
+                        text = "Total de productos: ${uiState.totalItems}",
+                        style = MaterialTheme.typography.bodyLarge.copy(color = colorScheme.onBackground)
+                    )
+                    Text(
+                        text = "Total a pagar: $${uiState.formattedTotal} CLP",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            color = colorScheme.secondary
+                        )
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = { viewModel.limpiarCarrito() },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = colorScheme.primary)
                         ) {
-                            items(uiState.items, key = { it.producto.codigo }) { item ->
-                                UiCarritoCard(
-                                    item = item,
-                                    onIncrease = { viewModel.incrementarCantidad(item.producto.codigo) },
-                                    onDecrease = { viewModel.decrementarCantidad(item.producto.codigo) },
-                                    onRemove = { viewModel.quitarProducto(item.producto.codigo) }
-                                )
-                            }
+                            Text(text = "Limpiar carrito")
                         }
-
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 24.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        Button(
+                            onClick = {},
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = colorScheme.primary,
+                                contentColor = colorScheme.onPrimary
+                            )
                         ) {
-                            Text(
-                                text = "Total de productos: ${uiState.totalItems}",
-                                style = MaterialTheme.typography.bodyLarge.copy(color = colorScheme.onBackground)
-                            )
-                            Text(
-                                text = "Total a pagar: $${uiState.formattedTotal} CLP",
-                                style = MaterialTheme.typography.titleMedium.copy(
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = colorScheme.secondary
-                                )
-                            )
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                OutlinedButton(
-                                    onClick = { viewModel.limpiarCarrito() },
-                                    modifier = Modifier.weight(1f),
-                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = colorScheme.primary)
-                                ) {
-                                    Text(text = "Limpiar carrito")
-                                }
-                                Button(
-                                    onClick = {},
-                                    modifier = Modifier.weight(1f),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = colorScheme.primary,
-                                        contentColor = colorScheme.onPrimary
-                                    )
-                                ) {
-                                    Text(text = "Pagar")
-                                }
-                            }
+                            Text(text = "Pagar")
                         }
                     }
+                }
+            }
         }
     }
 }

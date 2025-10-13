@@ -4,7 +4,6 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -32,7 +31,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.shape.RoundedCornerShape
 import cl.duoc.levelupapp.model.Producto
 
 @Composable
@@ -47,12 +45,8 @@ fun UiProductosCard(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 300.dp),
-        shape = RoundedCornerShape(22.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.45f)
-        ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.22f))
+        shape = MaterialTheme.shapes.medium,
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
         Column(
             modifier = Modifier
@@ -80,14 +74,14 @@ fun UiProductosCard(
             Text(
                 text = producto.categoria,
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.secondary
+                color = MaterialTheme.colorScheme.primary
             )
 
             Spacer(Modifier.height(8.dp))
 
             Text(
                 text = "Valor: $${producto.precio} CLP",
-                style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onBackground)
+                style = MaterialTheme.typography.bodyMedium
             )
 
             Spacer(Modifier.weight(1f))
@@ -117,10 +111,7 @@ fun UiProductosCard(
                     onAgregar(producto)
                 },
                 interactionSource = interactionSource,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = colorFondo,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                ),
+                colors = ButtonDefaults.buttonColors(containerColor = colorFondo),
                 modifier = Modifier
                     .fillMaxWidth()
                     .graphicsLayer {
