@@ -94,6 +94,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.resume
+import coil.compose.AsyncImage
 
 private val BrandShadow = Color(0xFF000000)
 private val BrandMidnight = Color(0xFF010E1C)
@@ -559,30 +560,47 @@ private fun ProductCard(producto: Producto) {
         ),
         shape = RoundedCornerShape(16.dp)
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = producto.nombre,
-                style = MaterialTheme.typography.titleMedium.copy(
-                    color = BrandAccent,
-                    fontWeight = FontWeight.SemiBold
+            AsyncImage(
+                model = producto.imagenUrl,
+                contentDescription = producto.nombre,
+                modifier = Modifier
+                    .size(72.dp)
+                    .clip(RoundedCornerShape(12.dp)),
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(id = R.drawable.logo),
+                error = painterResource(id = R.drawable.logo)
+            )
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = producto.nombre,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        color = BrandAccent,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 )
-            )
-            Text(
-                text = "${producto.categoria} • ${producto.codigo}",
-                style = MaterialTheme.typography.bodyMedium.copy(color = BrandAccent.copy(alpha = 0.8f))
-            )
-            Text(
-                text = "$${producto.precio} CLP",
-                style = MaterialTheme.typography.titleSmall.copy(
-                    color = BrandAccent,
-                    fontWeight = FontWeight.Medium
+                Text(
+                    text = "${producto.categoria} • ${producto.codigo}",
+                    style = MaterialTheme.typography.bodyMedium.copy(color = BrandAccent.copy(alpha = 0.8f))
                 )
-            )
+                Text(
+                    text = "$${producto.precio} CLP",
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        color = BrandAccent,
+                        fontWeight = FontWeight.Medium
+                    )
+                )
+            }
         }
     }
 }
