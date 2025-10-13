@@ -1,5 +1,7 @@
 package cl.duoc.levelupapp.model
 
+import cl.duoc.levelupapp.R
+
 data class Producto(
     val codigo: String,
     val categoria: String,
