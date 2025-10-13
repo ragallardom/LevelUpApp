@@ -118,8 +118,6 @@ fun CarritoScreen(
                             Text(text = "Pagar")
                         }
                     }
-                }
-            }
         }
     }
 }
