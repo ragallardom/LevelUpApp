@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -20,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cl.duoc.levelupapp.R
+import cl.duoc.levelupapp.util.isOnline
 
 private val BrandShadow = Color(0xFF000000)
 private val BrandMidnight = Color(0xFF010E1C)
@@ -31,8 +33,13 @@ private val BrandAccent = Color(0xFFA8BFCD)
 fun LoginScreen(
     onBack: () -> Unit,
     onLoginSuccess: () -> Unit,
-    vm: LoginViewModel = viewModel()
 ) {
+    val context = LocalContext.current
+    val vm: LoginViewModel = viewModel(
+        factory = remember(context) {
+            LoginViewModelFactory(networkChecker = { context.isOnline() })
+        }
+    )
     val state by vm.ui.collectAsState()
 
     LaunchedEffect(state.loggedIn) {
