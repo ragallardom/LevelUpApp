@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -54,7 +55,7 @@ fun UiCarritoCard(
             ProductoImagen(producto = item.producto)
 
             Column(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
@@ -66,26 +67,21 @@ fun UiCarritoCard(
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        IconButton(onClick = onDecrease) {
-                            Icon(imageVector = Icons.Filled.Remove, contentDescription = "Disminuir cantidad")
-                        }
-                        Text(
-                            text = item.cantidad.toString(),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        IconButton(onClick = onIncrease) {
-                            Icon(imageVector = Icons.Filled.Add, contentDescription = "Aumentar cantidad")
-                        }
+                    IconButton(onClick = onDecrease) {
+                        Icon(imageVector = Icons.Filled.Remove, contentDescription = "Disminuir cantidad")
                     }
+                    Text(
+                        text = item.cantidad.toString(),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    IconButton(onClick = onIncrease) {
+                        Icon(imageVector = Icons.Filled.Add, contentDescription = "Aumentar cantidad")
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
                     ElevatedButton(
                         onClick = onRemove,
                         colors = ButtonDefaults.elevatedButtonColors()
