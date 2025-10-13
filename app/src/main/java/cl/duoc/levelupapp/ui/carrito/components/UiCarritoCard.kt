@@ -4,12 +4,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -72,27 +71,32 @@ fun UiCarritoCard(
                     style = MaterialTheme.typography.bodyMedium.copy(color = colorScheme.onSurfaceVariant)
                 )
                 Row(
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    IconButton(
-                        onClick = onDecrease,
-                        colors = IconButtonDefaults.iconButtonColors(contentColor = colorScheme.primary)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Icon(imageVector = Icons.Filled.Remove, contentDescription = "Disminuir cantidad")
+                        IconButton(
+                            onClick = onDecrease,
+                            colors = IconButtonDefaults.iconButtonColors(contentColor = colorScheme.primary)
+                        ) {
+                            Icon(imageVector = Icons.Filled.Remove, contentDescription = "Disminuir cantidad")
+                        }
+                        Text(
+                            text = item.cantidad.toString(),
+                            style = MaterialTheme.typography.titleMedium.copy(color = colorScheme.onBackground),
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        IconButton(
+                            onClick = onIncrease,
+                            colors = IconButtonDefaults.iconButtonColors(contentColor = colorScheme.primary)
+                        ) {
+                            Icon(imageVector = Icons.Filled.Add, contentDescription = "Aumentar cantidad")
+                        }
                     }
-                    Text(
-                        text = item.cantidad.toString(),
-                        style = MaterialTheme.typography.titleMedium.copy(color = colorScheme.onBackground),
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    IconButton(
-                        onClick = onIncrease,
-                        colors = IconButtonDefaults.iconButtonColors(contentColor = colorScheme.primary)
-                    ) {
-                        Icon(imageVector = Icons.Filled.Add, contentDescription = "Aumentar cantidad")
-                    }
-                    Spacer(modifier = Modifier.weight(1f))
                     ElevatedButton(
                         onClick = onRemove,
                         colors = ButtonDefaults.elevatedButtonColors(
