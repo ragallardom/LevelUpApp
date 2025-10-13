@@ -4,6 +4,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 class FirebaseAuthDataSource(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
