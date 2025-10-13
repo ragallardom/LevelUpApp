@@ -8,33 +8,19 @@ import kotlin.coroutines.resume
 class FirebaseAuthDataSource(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 ) {
-    suspend fun signIn(email: String, pass: String): FirebaseUser =
+    suspend fun signIn(email: String, pass: String): FirebaseUser? =
         suspendCancellableCoroutine { cont ->
             auth.signInWithEmailAndPassword(email, pass)
-                .addOnSuccessListener { result ->
-                    val user = result.user
-                    if (user != null) {
-                        cont.resume(user)
-                    } else {
-                        cont.resumeWithException(IllegalStateException("Usuario sin datos"))
-                    }
-                }
-                .addOnFailureListener { exception -> cont.resumeWithException(exception) }
+                .addOnSuccessListener { cont.resume(it.user) }
+                .addOnFailureListener { cont.resume(null) }
         }
 
 
-    suspend fun signUp(email: String, pass: String): FirebaseUser =
+    suspend fun signUp(email: String, pass: String): FirebaseUser? =
         suspendCancellableCoroutine { cont ->
             auth.createUserWithEmailAndPassword(email, pass)
-                .addOnSuccessListener { result ->
-                    val user = result.user
-                    if (user != null) {
-                        cont.resume(user)
-                    } else {
-                        cont.resumeWithException(IllegalStateException("Usuario sin datos"))
-                    }
-                }
-                .addOnFailureListener { exception -> cont.resumeWithException(exception) }
+                .addOnSuccessListener { cont.resume(it.user) }
+                .addOnFailureListener { cont.resume(null) }
         }
 
     suspend fun sendPasswordReset(email: String): Boolean =
