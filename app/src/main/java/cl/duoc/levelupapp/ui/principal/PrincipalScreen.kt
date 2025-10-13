@@ -11,6 +11,7 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
@@ -29,6 +30,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -70,19 +72,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.annotation.DrawableRes
+import cl.duoc.levelupapp.R
 import cl.duoc.levelupapp.model.Producto
 import cl.duoc.levelupapp.ui.theme.LevelUppAppTheme
 import com.google.android.gms.location.LocationServices
 import java.io.IOException
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -93,10 +100,15 @@ private val BrandMidnight = Color(0xFF010E1C)
 private val BrandDeepBlue = Color(0xFF01142E)
 private val BrandAccent = Color(0xFFA8BFCD)
 
+data class CarouselItem(
+    @DrawableRes val imageRes: Int,
+    val contentDescription: String
+)
+
 private val carouselItems = listOf(
-    "Promociones Exclusivas",
-    "Novedades Gaming",
-    "Tu Setup Ideal"
+    CarouselItem(R.drawable.logo, "Promociones Exclusivas"),
+    CarouselItem(R.drawable.logo, "Novedades Gaming"),
+    CarouselItem(R.drawable.logo, "Tu Setup Ideal")
 )
 
 enum class BottomOption { HOME, ACCOUNT, CATEGORIES, ORDERS, LOGOUT }
@@ -422,6 +434,19 @@ fun PrincipalScreen(
 @Composable
 private fun CarouselSection() {
     val pagerState = rememberPagerState(pageCount = { carouselItems.size })
+    val coroutineScope = rememberCoroutineScope()
+
+    if (carouselItems.isEmpty()) {
+        return
+    }
+
+    LaunchedEffect(pagerState) {
+        while (true) {
+            delay(5_000)
+            val nextPage = (pagerState.currentPage + 1) % pagerState.pageCount
+            pagerState.animateScrollToPage(nextPage)
+        }
+    }
 
     Column(
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -432,29 +457,45 @@ private fun CarouselSection() {
                 .height(160.dp)
         ) {
             HorizontalPager(state = pagerState) { page ->
+                val item = carouselItems[page]
                 Card(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(horizontal = 4.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = BrandAccent.copy(alpha = 0.2f)
+                        containerColor = Color.Transparent
                     )
                 ) {
                     Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(24.dp),
-                        contentAlignment = Alignment.Center
+                        modifier = Modifier.fillMaxSize()
                     ) {
-                        Text(
-                            text = carouselItems[page],
-                            style = MaterialTheme.typography.titleLarge.copy(
-                                color = BrandAccent,
-                                fontWeight = FontWeight.SemiBold
-                            ),
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
+                        Image(
+                            painter = painterResource(id = item.imageRes),
+                            contentDescription = item.contentDescription,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
                         )
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.BottomStart)
+                                .fillMaxWidth()
+                                .background(
+                                    Brush.verticalGradient(
+                                        listOf(Color.Transparent, BrandDeepBlue.copy(alpha = 0.7f))
+                                    )
+                                )
+                                .padding(16.dp)
+                        ) {
+                            Text(
+                                text = item.contentDescription,
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    color = BrandAccent,
+                                    fontWeight = FontWeight.SemiBold
+                                ),
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
                     }
                 }
             }
@@ -472,6 +513,11 @@ private fun CarouselSection() {
                         .size(width = 24.dp, height = 6.dp)
                         .clip(RoundedCornerShape(8.dp))
                         .background(indicatorColor)
+                        .clickable {
+                            coroutineScope.launch {
+                                pagerState.animateScrollToPage(index)
+                            }
+                        }
                 )
             }
         }
