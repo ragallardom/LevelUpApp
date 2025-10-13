@@ -1,6 +1,7 @@
 package cl.duoc.levelupapp.ui.carrito
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -9,14 +10,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -38,6 +42,8 @@ fun CarritoScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        contentColor = MaterialTheme.colorScheme.onSurface,
         topBar = {
             TopAppBar(
                 title = { Text(text = "Tu carrito") },
@@ -55,6 +61,7 @@ fun CarritoScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .padding(padding)
                 .padding(horizontal = 16.dp)
                 .navigationBarsPadding(),
@@ -71,6 +78,8 @@ fun CarritoScreen(
                     items(uiState.items, key = { it.producto.codigo }) { item ->
                         UiCarritoCard(
                             item = item,
+                            onIncrease = { viewModel.incrementarCantidad(item.producto.codigo) },
+                            onDecrease = { viewModel.decrementarCantidad(item.producto.codigo) },
                             onRemove = { viewModel.quitarProducto(item.producto.codigo) }
                         )
                     }
@@ -92,6 +101,23 @@ fun CarritoScreen(
                             fontWeight = FontWeight.SemiBold
                         )
                     )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = { viewModel.limpiarCarrito() },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(text = "Limpiar carrito")
+                        }
+                        Button(
+                            onClick = {},
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(text = "Pagar")
+                        }
+                    }
                 }
             }
         }
