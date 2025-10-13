@@ -35,7 +35,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingBag
@@ -109,7 +108,7 @@ sealed interface LocationUiState {
     data class Error(val message: String) : LocationUiState
 }
 
-@OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun PrincipalScreen(
     onLogout: () -> Unit,
@@ -617,7 +616,7 @@ private fun LocationCard(
 @Composable
 private fun PrincipalScreenPreview() {
     LevelUppAppTheme {
-        PrincipalScreen(onLogout = {}, viewModel = PrincipalViewModel())
+        PrincipalScreen(onLogout = {})
     }
 }
 
