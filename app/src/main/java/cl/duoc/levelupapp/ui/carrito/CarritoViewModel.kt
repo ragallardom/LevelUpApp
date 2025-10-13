@@ -43,6 +43,31 @@ class CarritoViewModel : ViewModel() {
         _uiState.value = CarritoUiState(items = itemsActuales)
     }
 
+    fun incrementarCantidad(codigoProducto: String) {
+        val itemsActuales = _uiState.value.items.toMutableList()
+        val indice = itemsActuales.indexOfFirst { it.producto.codigo == codigoProducto }
+        if (indice >= 0) {
+            val item = itemsActuales[indice]
+            itemsActuales[indice] = item.copy(cantidad = item.cantidad + 1)
+            _uiState.value = CarritoUiState(items = itemsActuales)
+        }
+    }
+
+    fun decrementarCantidad(codigoProducto: String) {
+        val itemsActuales = _uiState.value.items.toMutableList()
+        val indice = itemsActuales.indexOfFirst { it.producto.codigo == codigoProducto }
+        if (indice >= 0) {
+            val item = itemsActuales[indice]
+            val nuevaCantidad = item.cantidad - 1
+            if (nuevaCantidad > 0) {
+                itemsActuales[indice] = item.copy(cantidad = nuevaCantidad)
+            } else {
+                itemsActuales.removeAt(indice)
+            }
+            _uiState.value = CarritoUiState(items = itemsActuales)
+        }
+    }
+
     fun quitarProducto(codigoProducto: String) {
         val itemsActuales = _uiState.value.items.filterNot { it.producto.codigo == codigoProducto }
         _uiState.value = CarritoUiState(items = itemsActuales)
@@ -60,7 +85,9 @@ private fun Producto.precioComoEntero(): Int {
         .toIntOrNull() ?: 0
 }
 
+private val currencyLocale: Locale = Locale.forLanguageTag("es-CL")
+
 private fun formatCurrency(value: Int): String {
-    val formatter = NumberFormat.getNumberInstance(Locale("es", "CL"))
+    val formatter = NumberFormat.getNumberInstance(currencyLocale)
     return formatter.format(value)
 }
