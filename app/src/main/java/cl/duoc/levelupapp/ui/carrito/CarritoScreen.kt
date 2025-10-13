@@ -147,6 +147,8 @@ fun CarritoScreen(
                             }
                         }
                     }
+                }
+            }
         }
     }
 }

@@ -254,6 +254,8 @@ fun ProductDetailScreen(
         }
     }
 }
+}
+
 
 @Composable
 private fun RelatedProductCard(
