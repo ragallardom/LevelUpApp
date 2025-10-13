@@ -41,6 +41,7 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -56,6 +57,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -72,6 +74,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
+import cl.duoc.levelupapp.model.Producto
 import cl.duoc.levelupapp.ui.theme.LevelUppAppTheme
 import com.google.android.gms.location.LocationServices
 import java.io.IOException
@@ -87,41 +91,10 @@ private val BrandMidnight = Color(0xFF010E1C)
 private val BrandDeepBlue = Color(0xFF01142E)
 private val BrandAccent = Color(0xFFA8BFCD)
 
-private val categories = listOf(
-    "Juegos de Mesa",
-    "Accesorios",
-    "Consolas",
-    "Computadores Gamers",
-    "Sillas Gamers",
-    "Mouse",
-    "Mousepad",
-    "Poleras Personalizadas"
-)
-
-private val products = listOf(
-    Product("JM001", "Juegos de Mesa", "Juegos de Mesa Catan", "29.990"),
-    Product("JM002", "Juegos de Mesa", "Juegos de Mesa Carcassonne", "24.990"),
-    Product("AC001", "Accesorios", "Controlador Inalámbrico Xbox Series X", "59.990"),
-    Product("AC002", "Accesorios", "Auriculares Gamer HyperX Cloud II", "79.990"),
-    Product("CO001", "Consolas", "Consolas PlayStation 5", "549.990"),
-    Product("CG001", "Computadores Gamers", "Computadores Gamers PC Gamer ASUS ROG Strix", "1.299.990"),
-    Product("SG001", "Sillas Gamers", "Sillas Gamers Silla Gamer Secretlab Titan", "349.990"),
-    Product("MS001", "Mouse", "Mouse Gamer Logitech G502 HERO", "49.990"),
-    Product("MP001", "Mousepad", "Mousepad Razer Goliathus Extended Chroma", "29.990"),
-    Product("PP001", "Poleras Personalizadas", "Polera Gamer Personalizada 'Level-Up'", "14.990")
-)
-
 private val carouselItems = listOf(
     "Promociones Exclusivas",
     "Novedades Gaming",
     "Tu Setup Ideal"
-)
-
-data class Product(
-    val code: String,
-    val category: String,
-    val name: String,
-    val price: String
 )
 
 enum class BottomOption { HOME, ACCOUNT, CATEGORIES, ORDERS, LOGOUT }
@@ -136,7 +109,8 @@ sealed interface LocationUiState {
 @OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 fun PrincipalScreen(
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    viewModel: PrincipalViewModel = viewModel()
 ) {
     val context = LocalContext.current
     var searchQuery by remember { mutableStateOf("") }
@@ -151,7 +125,21 @@ fun PrincipalScreen(
         )
     }
 
+    val uiState by viewModel.ui.collectAsState()
+    val categoriaSeleccionada by viewModel.categoriaSel.collectAsState()
+    val productos by viewModel.productosFiltrados.collectAsState()
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        viewModel.cargarProductos()
+    }
+
+    LaunchedEffect(uiState.loggedOut) {
+        if (uiState.loggedOut) {
+            onLogout()
+        }
+    }
+
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -168,6 +156,17 @@ fun PrincipalScreen(
     LaunchedEffect(hasLocationPermission) {
         if (hasLocationPermission && locationState !is LocationUiState.Success) {
             requestAddress(onStateChange = { locationState = it }, context = context)
+        }
+    }
+
+    val displayedProducts = if (searchQuery.isBlank()) {
+        productos
+    } else {
+        val query = searchQuery.trim().lowercase(Locale.getDefault())
+        productos.filter { producto ->
+            producto.nombre.lowercase(Locale.getDefault()).contains(query) ||
+                producto.categoria.lowercase(Locale.getDefault()).contains(query) ||
+                producto.codigo.lowercase(Locale.getDefault()).contains(query)
         }
     }
 
@@ -189,7 +188,10 @@ fun PrincipalScreen(
             ) {
                 NavigationBarItem(
                     selected = selectedOption == BottomOption.HOME,
-                    onClick = { selectedOption = BottomOption.HOME },
+                    onClick = {
+                        selectedOption = BottomOption.HOME
+                        viewModel.refreshHome()
+                    },
                     icon = { Icon(Icons.Default.Home, contentDescription = "Inicio") },
                     label = { Text("Inicio") },
                     colors = NavigationBarItemDefaults.colors(
@@ -243,7 +245,7 @@ fun PrincipalScreen(
                     selected = selectedOption == BottomOption.LOGOUT,
                     onClick = {
                         selectedOption = BottomOption.LOGOUT
-                        onLogout()
+                        viewModel.logout()
                     },
                     icon = { Icon(Icons.Default.Logout, contentDescription = "Logout") },
                     label = { Text("Logout") },
@@ -352,10 +354,11 @@ fun PrincipalScreen(
                     LazyRow(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        items(categories) { category ->
+                        items(viewModel.categorias) { category ->
                             CategoryChip(
                                 text = category,
-                                onClick = { /* TODO: navegar a categoría */ }
+                                selected = category == categoriaSeleccionada,
+                                onClick = { viewModel.setCategoria(category) }
                             )
                         }
                     }
@@ -371,8 +374,42 @@ fun PrincipalScreen(
                     )
                 }
 
-                items(products, key = { it.code }) { product ->
-                    ProductCard(product = product)
+                if (uiState.loading) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 24.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = BrandAccent)
+                        }
+                    }
+                }
+
+                uiState.error?.let { error ->
+                    item {
+                        Text(
+                            text = error,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+
+                if (!uiState.loading && displayedProducts.isEmpty()) {
+                    item {
+                        Text(
+                            text = "No se encontraron productos",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = BrandAccent.copy(alpha = 0.8f)
+                            )
+                        )
+                    }
+                } else {
+                    items(displayedProducts, key = { it.codigo }) { product ->
+                        ProductCard(producto = product)
+                    }
                 }
             }
         }
@@ -442,6 +479,7 @@ private fun CarouselSection() {
 @Composable
 private fun CategoryChip(
     text: String,
+    selected: Boolean,
     onClick: () -> Unit
 ) {
     AssistChip(
@@ -454,18 +492,18 @@ private fun CategoryChip(
         },
         shape = RoundedCornerShape(24.dp),
         colors = AssistChipDefaults.assistChipColors(
-            containerColor = BrandAccent.copy(alpha = 0.15f),
+            containerColor = if (selected) BrandAccent.copy(alpha = 0.3f) else BrandAccent.copy(alpha = 0.15f),
             labelColor = BrandAccent
         ),
         border = AssistChipDefaults.assistChipBorder(
-            borderColor = BrandAccent.copy(alpha = 0.4f),
+            borderColor = if (selected) BrandAccent else BrandAccent.copy(alpha = 0.4f),
             borderWidth = 1.dp
         )
     )
 }
 
 @Composable
-private fun ProductCard(product: Product) {
+private fun ProductCard(producto: Producto) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -480,18 +518,18 @@ private fun ProductCard(product: Product) {
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(
-                text = product.name,
+                text = producto.nombre,
                 style = MaterialTheme.typography.titleMedium.copy(
                     color = BrandAccent,
                     fontWeight = FontWeight.SemiBold
                 )
             )
             Text(
-                text = "${product.category} • ${product.code}",
+                text = "${producto.categoria} • ${producto.codigo}",
                 style = MaterialTheme.typography.bodyMedium.copy(color = BrandAccent.copy(alpha = 0.8f))
             )
             Text(
-                text = "$${product.price} CLP",
+                text = "$${producto.precio} CLP",
                 style = MaterialTheme.typography.titleSmall.copy(
                     color = BrandAccent,
                     fontWeight = FontWeight.Medium
@@ -522,7 +560,7 @@ private fun LocationCard(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                text = "Dirección de entrega",
+                text = "Tu ubicación",
                 style = MaterialTheme.typography.titleMedium.copy(
                     color = BrandAccent,
                     fontWeight = FontWeight.SemiBold
@@ -576,7 +614,7 @@ private fun LocationCard(
 @Composable
 private fun PrincipalScreenPreview() {
     LevelUppAppTheme {
-        PrincipalScreen(onLogout = {})
+        PrincipalScreen(onLogout = {}, viewModel = PrincipalViewModel())
     }
 }
 
