@@ -19,7 +19,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import cl.duoc.levelupapp.R
+    import cl.duoc.levelupapp.R
 
 private val BrandShadow = Color(0xFF000000)
 private val BrandMidnight = Color(0xFF010E1C)
