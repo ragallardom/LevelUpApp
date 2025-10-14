@@ -17,7 +17,7 @@ import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -42,7 +42,11 @@ fun UiCarritoCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Row(
             modifier = Modifier
@@ -63,7 +67,9 @@ fun UiCarritoCard(
                 )
                 Text(
                     text = "$${item.producto.precio} CLP",
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -86,9 +92,12 @@ fun UiCarritoCard(
                 }
             }
 
-            ElevatedButton(
+            FilledTonalButton(
                 onClick = onRemove,
-                colors = ButtonDefaults.elevatedButtonColors()
+                colors = ButtonDefaults.filledTonalButtonColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                )
             ) {
                 Icon(imageVector = Icons.Filled.Delete, contentDescription = "Quitar del carrito")
                 Spacer(modifier = Modifier.width(8.dp))
