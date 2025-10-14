@@ -5,14 +5,18 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import cl.duoc.levelupapp.ui.carrito.CarritoScreen
 import cl.duoc.levelupapp.ui.carrito.CarritoViewModel
 import cl.duoc.levelupapp.ui.home.HomeScreen
 import cl.duoc.levelupapp.ui.login.LoginScreen
 import cl.duoc.levelupapp.ui.principal.PrincipalScreen
+import cl.duoc.levelupapp.ui.producto.ProductDetailScreen
+import cl.duoc.levelupapp.model.productosDemo
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,6 +60,9 @@ fun AppNavHost() {
                     }
                 },
                 onCartClick = { nav.navigate(Route.Cart.path) },
+                onProductClick = { producto ->
+                    nav.navigate(Route.ProductDetail.create(producto.codigo))
+                },
                 carritoViewModel = carritoViewModel
             )
         }
@@ -65,6 +72,38 @@ fun AppNavHost() {
                 onBack = { nav.popBackStack() },
                 viewModel = carritoViewModel
             )
+        }
+
+        composable(
+            route = Route.ProductDetail.path,
+            arguments = listOf(
+                navArgument(Route.ProductDetail.ARG_PRODUCT_ID) {
+                    type = NavType.StringType
+                }
+            )
+        ) { backStackEntry ->
+            val productId = backStackEntry.arguments?.getString(Route.ProductDetail.ARG_PRODUCT_ID)
+            val product = productosDemo.find { it.codigo == productId }
+            if (product != null) {
+                val suggested = productosDemo.filter {
+                    it.categoria == product.categoria && it.codigo != product.codigo
+                }
+                ProductDetailScreen(
+                    producto = product,
+                    sugeridos = suggested,
+                    onBack = { nav.popBackStack() },
+                    onAddToCart = {
+                        carritoViewModel.agregarProducto(product)
+                    },
+                    onSuggestedProductClick = { sugerido ->
+                        nav.navigate(Route.ProductDetail.create(sugerido.codigo)) {
+                            launchSingleTop = true
+                        }
+                    }
+                )
+            } else {
+                nav.popBackStack()
+            }
         }
     }
 }
