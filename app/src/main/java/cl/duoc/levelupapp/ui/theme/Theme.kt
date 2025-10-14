@@ -1,42 +1,64 @@
 package cl.duoc.levelupapp.ui.theme
 
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = LevelUpPrimary,
+    onPrimary = LevelUpOnPrimary,
+    secondary = LevelUpSecondary,
+    onSecondary = LevelUpOnSecondary,
+    tertiary = LevelUpTertiary,
+    onTertiary = LevelUpOnTertiary,
+    background = LevelUpBackground,
+    onBackground = LevelUpOnBackground,
+    surface = LevelUpSurface,
+    onSurface = LevelUpOnSurface,
+    surfaceVariant = LevelUpSurfaceVariant,
+    onSurfaceVariant = LevelUpOnSurfaceVariant,
+    surfaceContainerLowest = LevelUpSurface,
+    surfaceContainerLow = LevelUpSurfaceContainerLow,
+    surfaceContainer = LevelUpSurfaceContainer,
+    surfaceContainerHigh = LevelUpSurfaceContainerHigh,
+    outline = LevelUpOutline,
+    outlineVariant = LevelUpOutlineVariant,
+    error = LevelUpError,
+    onError = LevelUpOnError
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+    primary = LevelUpOnPrimary,
+    onPrimary = LevelUpPrimary,
+    secondary = LevelUpSecondary,
+    onSecondary = LevelUpOnSecondary,
+    tertiary = LevelUpTertiary,
+    onTertiary = LevelUpOnTertiary,
+    background = LevelUpOnBackground,
+    onBackground = LevelUpBackground,
+    surface = LevelUpPrimary,
+    onSurface = LevelUpOnPrimary,
+    surfaceVariant = LevelUpSecondary,
+    onSurfaceVariant = LevelUpOnSecondary,
+    surfaceContainerLowest = LevelUpPrimary,
+    surfaceContainerLow = LevelUpPrimary.copy(alpha = 0.85f),
+    surfaceContainer = LevelUpPrimary.copy(alpha = 0.75f),
+    surfaceContainerHigh = LevelUpPrimary.copy(alpha = 0.65f),
+    outline = LevelUpOutline,
+    outlineVariant = LevelUpOutlineVariant,
+    error = LevelUpError,
+    onError = LevelUpOnError
 )
 
 @Composable
 fun LevelUppAppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
 
     MaterialTheme(
         colorScheme = colorScheme,
