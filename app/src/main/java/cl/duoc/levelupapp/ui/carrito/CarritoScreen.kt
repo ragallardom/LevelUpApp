@@ -41,7 +41,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import cl.duoc.levelupapp.ui.carrito.components.UiCarritoCard
-import cl.duoc.levelupapp.ui.theme.LevelUpGradientColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,7 +57,7 @@ fun CarritoScreen(
             TopAppBar(
                 title = { Text(text = "Tu carrito") },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
                     titleContentColor = MaterialTheme.colorScheme.onSurface,
                     navigationIconContentColor = MaterialTheme.colorScheme.onSurface
                 ),
@@ -78,7 +77,10 @@ fun CarritoScreen(
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
-                        colors = LevelUpGradientColors
+                        colors = listOf(
+                            MaterialTheme.colorScheme.surfaceContainerHigh,
+                            MaterialTheme.colorScheme.surface
+                        )
                     )
                 )
         ) {

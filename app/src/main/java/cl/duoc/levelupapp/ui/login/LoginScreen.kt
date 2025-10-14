@@ -2,38 +2,12 @@ package cl.duoc.levelupapp.ui.login
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -45,8 +19,12 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import cl.duoc.levelupapp.R
-import cl.duoc.levelupapp.ui.theme.LevelUpGradientColors
+    import cl.duoc.levelupapp.R
+
+private val BrandShadow = Color(0xFF000000)
+private val BrandMidnight = Color(0xFF010E1C)
+private val BrandDeepBlue = Color(0xFF01142E)
+private val BrandAccent = Color(0xFFA8BFCD)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,7 +55,7 @@ fun LoginScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(22.dp),
-                color = MaterialTheme.colorScheme.surface
+                color = BrandDeepBlue
             ) {}
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
@@ -87,7 +65,7 @@ fun LoginScreen(
                 .fillMaxSize()
                 .background(
                     brush = Brush.verticalGradient(
-                        colors = LevelUpGradientColors
+                        colors = listOf(BrandShadow, BrandMidnight, BrandDeepBlue)
                     )
                 )
                 .padding(inner)
@@ -122,14 +100,14 @@ fun LoginScreen(
                         Text(
                             text = "Inicia sesión",
                             style = MaterialTheme.typography.headlineSmall.copy(
-                                color = MaterialTheme.colorScheme.primary,
+                                color = BrandAccent,
                                 fontWeight = FontWeight.SemiBold
                             )
                         )
                         Text(
                             text = "Ingresa tus credenciales para continuar",
                             style = MaterialTheme.typography.bodyMedium.copy(
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.9f),
+                                color = BrandAccent.copy(alpha = 0.8f),
                                 fontSize = 14.sp
                             )
                         )
@@ -139,21 +117,6 @@ fun LoginScreen(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        val textFieldColors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                            cursorColor = MaterialTheme.colorScheme.primary,
-                            unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            focusedLabelColor = MaterialTheme.colorScheme.primary,
-                            unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
-                            unfocusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
                         OutlinedTextField(
                             value = state.email,
                             onValueChange = vm::onEmailChange,
@@ -161,7 +124,15 @@ fun LoginScreen(
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                             modifier = Modifier.fillMaxWidth(),
-                            colors = textFieldColors
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = BrandAccent,
+                                unfocusedTextColor = BrandAccent,
+                                cursorColor = BrandAccent,
+                                unfocusedBorderColor = BrandAccent.copy(alpha = 0.5f),
+                                unfocusedLabelColor = BrandAccent.copy(alpha = 0.7f),
+                                focusedBorderColor = BrandAccent,
+                                focusedLabelColor = BrandAccent
+                            )
                         )
 
                         OutlinedTextField(
@@ -172,7 +143,15 @@ fun LoginScreen(
                             visualTransformation = PasswordVisualTransformation(),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                             modifier = Modifier.fillMaxWidth(),
-                            colors = textFieldColors
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = BrandAccent,
+                                unfocusedTextColor = BrandAccent,
+                                cursorColor = BrandAccent,
+                                unfocusedBorderColor = BrandAccent.copy(alpha = 0.5f),
+                                unfocusedLabelColor = BrandAccent.copy(alpha = 0.7f),
+                                focusedBorderColor = BrandAccent,
+                                focusedLabelColor = BrandAccent
+                            )
                         )
 
                         if (state.error != null) {
@@ -184,8 +163,8 @@ fun LoginScreen(
                             enabled = !state.loading,
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary,
-                                contentColor = MaterialTheme.colorScheme.onPrimary
+                                containerColor = BrandAccent,
+                                contentColor = BrandDeepBlue
                             )
                         ) {
                             Text(if (state.loading) "Ingresando..." else "Ingresar")
@@ -205,7 +184,7 @@ fun LoginScreen(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Volver",
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = BrandAccent
                 )
             }
 
@@ -214,7 +193,7 @@ fun LoginScreen(
                     modifier = Modifier
                         .align(Alignment.Center)
                         .size(48.dp),
-                    color = MaterialTheme.colorScheme.primary
+                    color = BrandAccent
                 )
             }
         }

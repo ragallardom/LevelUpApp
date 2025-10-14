@@ -49,7 +49,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -90,7 +89,6 @@ import cl.duoc.levelupapp.R
 import cl.duoc.levelupapp.ui.carrito.CarritoViewModel
 import cl.duoc.levelupapp.model.Producto
 import cl.duoc.levelupapp.ui.theme.LevelUppAppTheme
-import cl.duoc.levelupapp.ui.theme.LevelUpGradientColors
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
@@ -102,6 +100,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.resume
+
+private val BrandShadow = Color(0xFF000000)
+private val BrandMidnight = Color(0xFF010E1C)
+private val BrandDeepBlue = Color(0xFF01142E)
+private val BrandAccent = Color(0xFFA8BFCD)
 
 data class CarouselItem(
     @DrawableRes val imageRes: Int,
@@ -132,7 +135,6 @@ fun PrincipalScreen(
     viewModel: PrincipalViewModel = viewModel(),
     carritoViewModel: CarritoViewModel = viewModel()
 ) {
-    val colorScheme = MaterialTheme.colorScheme
     val context = LocalContext.current
     var searchQuery by remember { mutableStateOf("") }
     var selectedOption by remember { mutableStateOf(BottomOption.HOME) }
@@ -199,22 +201,15 @@ fun PrincipalScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(24.dp),
-                color = colorScheme.surface,
+                color = BrandDeepBlue,
                 content = {}
             )
         },
         bottomBar = {
             NavigationBar(
-                containerColor = colorScheme.surface,
-                contentColor = colorScheme.onSurface
+                containerColor = BrandDeepBlue,
+                contentColor = BrandAccent
             ) {
-                val navItemColors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = colorScheme.onPrimary,
-                    selectedTextColor = colorScheme.onPrimary,
-                    unselectedIconColor = colorScheme.onSurfaceVariant,
-                    unselectedTextColor = colorScheme.onSurfaceVariant,
-                    indicatorColor = colorScheme.primary
-                )
                 NavigationBarItem(
                     selected = selectedOption == BottomOption.HOME,
                     onClick = {
@@ -223,28 +218,52 @@ fun PrincipalScreen(
                     },
                     icon = { Icon(Icons.Default.Home, contentDescription = "Inicio") },
                     label = { Text("Inicio") },
-                    colors = navItemColors
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = BrandDeepBlue,
+                        selectedTextColor = BrandAccent,
+                        unselectedIconColor = BrandAccent.copy(alpha = 0.7f),
+                        unselectedTextColor = BrandAccent.copy(alpha = 0.7f),
+                        indicatorColor = BrandAccent
+                    )
                 )
                 NavigationBarItem(
                     selected = selectedOption == BottomOption.ACCOUNT,
                     onClick = { selectedOption = BottomOption.ACCOUNT },
                     icon = { Icon(Icons.Default.Person, contentDescription = "Mi cuenta") },
                     label = { Text("Mi cuenta") },
-                    colors = navItemColors
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = BrandDeepBlue,
+                        selectedTextColor = BrandAccent,
+                        unselectedIconColor = BrandAccent.copy(alpha = 0.7f),
+                        unselectedTextColor = BrandAccent.copy(alpha = 0.7f),
+                        indicatorColor = BrandAccent
+                    )
                 )
                 NavigationBarItem(
                     selected = selectedOption == BottomOption.CATEGORIES,
                     onClick = { selectedOption = BottomOption.CATEGORIES },
                     icon = { Icon(Icons.Default.Category, contentDescription = "Categorías") },
                     label = { Text("Categorías") },
-                    colors = navItemColors
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = BrandDeepBlue,
+                        selectedTextColor = BrandAccent,
+                        unselectedIconColor = BrandAccent.copy(alpha = 0.7f),
+                        unselectedTextColor = BrandAccent.copy(alpha = 0.7f),
+                        indicatorColor = BrandAccent
+                    )
                 )
                 NavigationBarItem(
                     selected = selectedOption == BottomOption.ORDERS,
                     onClick = { selectedOption = BottomOption.ORDERS },
                     icon = { Icon(Icons.Default.ShoppingBag, contentDescription = "Compras") },
                     label = { Text("Compras") },
-                    colors = navItemColors
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = BrandDeepBlue,
+                        selectedTextColor = BrandAccent,
+                        unselectedIconColor = BrandAccent.copy(alpha = 0.7f),
+                        unselectedTextColor = BrandAccent.copy(alpha = 0.7f),
+                        indicatorColor = BrandAccent
+                    )
                 )
                 NavigationBarItem(
                     selected = selectedOption == BottomOption.LOGOUT,
@@ -254,7 +273,13 @@ fun PrincipalScreen(
                     },
                     icon = { Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Logout") },
                     label = { Text("Logout") },
-                    colors = navItemColors
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = BrandDeepBlue,
+                        selectedTextColor = BrandAccent,
+                        unselectedIconColor = BrandAccent.copy(alpha = 0.7f),
+                        unselectedTextColor = BrandAccent.copy(alpha = 0.7f),
+                        indicatorColor = BrandAccent
+                    )
                 )
             }
         }
@@ -264,7 +289,7 @@ fun PrincipalScreen(
                 .fillMaxSize()
                 .background(
                     brush = Brush.verticalGradient(
-                        LevelUpGradientColors
+                        listOf(BrandShadow, BrandMidnight, BrandDeepBlue)
                     )
                 )
         ) {
@@ -289,24 +314,22 @@ fun PrincipalScreen(
                             singleLine = true,
                             leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar") },
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedContainerColor = colorScheme.surfaceContainer,
-                                unfocusedContainerColor = colorScheme.surfaceContainerLow,
-                                focusedBorderColor = colorScheme.primary,
-                                unfocusedBorderColor = colorScheme.outline,
-                                focusedTextColor = colorScheme.onSurface,
-                                unfocusedTextColor = colorScheme.onSurface,
-                                cursorColor = colorScheme.primary,
-                                focusedLeadingIconColor = colorScheme.primary,
-                                unfocusedLeadingIconColor = colorScheme.onSurfaceVariant,
-                                unfocusedPlaceholderColor = colorScheme.onSurfaceVariant,
-                                focusedPlaceholderColor = colorScheme.onSurfaceVariant
+                                focusedBorderColor = BrandAccent,
+                                unfocusedBorderColor = BrandAccent.copy(alpha = 0.6f),
+                                focusedTextColor = BrandAccent,
+                                unfocusedTextColor = BrandAccent,
+                                cursorColor = BrandAccent,
+                                focusedLeadingIconColor = BrandAccent,
+                                unfocusedLeadingIconColor = BrandAccent.copy(alpha = 0.8f),
+                                unfocusedPlaceholderColor = BrandAccent.copy(alpha = 0.7f),
+                                focusedPlaceholderColor = BrandAccent.copy(alpha = 0.7f)
                             )
                         )
                         Box(
                             modifier = Modifier
                                 .size(52.dp)
                                 .background(
-                                    color = colorScheme.primary.copy(alpha = 0.2f),
+                                    color = BrandAccent.copy(alpha = 0.2f),
                                     shape = CircleShape
                                 ),
                             contentAlignment = Alignment.Center
@@ -322,7 +345,7 @@ fun PrincipalScreen(
                                     Icon(
                                         imageVector = Icons.Default.ShoppingCart,
                                         contentDescription = "Carrito de compras",
-                                        tint = colorScheme.primary
+                                        tint = BrandAccent
                                     )
                                 }
                             }
@@ -357,7 +380,7 @@ fun PrincipalScreen(
                     Text(
                         text = "Categorías",
                         style = MaterialTheme.typography.titleMedium.copy(
-                            color = colorScheme.primary,
+                            color = BrandAccent,
                             fontWeight = FontWeight.SemiBold
                         )
                     )
@@ -381,7 +404,7 @@ fun PrincipalScreen(
                     Text(
                         text = "Productos",
                         style = MaterialTheme.typography.titleMedium.copy(
-                            color = colorScheme.primary,
+                            color = BrandAccent,
                             fontWeight = FontWeight.SemiBold
                         )
                     )
@@ -395,7 +418,7 @@ fun PrincipalScreen(
                                 .padding(vertical = 24.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            CircularProgressIndicator(color = colorScheme.primary)
+                            CircularProgressIndicator(color = BrandAccent)
                         }
                     }
                 }
@@ -415,7 +438,7 @@ fun PrincipalScreen(
                         Text(
                             text = "No se encontraron productos",
                             style = MaterialTheme.typography.bodyMedium.copy(
-                                color = colorScheme.onSurfaceVariant
+                                color = BrandAccent.copy(alpha = 0.8f)
                             )
                         )
                     }
@@ -438,7 +461,6 @@ fun PrincipalScreen(
 private fun CarouselSection() {
     val pagerState = rememberPagerState(pageCount = { carouselItems.size })
     val coroutineScope = rememberCoroutineScope()
-    val colorScheme = MaterialTheme.colorScheme
 
     if (carouselItems.isEmpty()) {
         return
@@ -485,10 +507,7 @@ private fun CarouselSection() {
                                 .fillMaxWidth()
                                 .background(
                                     Brush.verticalGradient(
-                                        listOf(
-                                            Color.Transparent,
-                                            colorScheme.surface.copy(alpha = 0.85f)
-                                        )
+                                        listOf(Color.Transparent, BrandDeepBlue.copy(alpha = 0.7f))
                                     )
                                 )
                                 .padding(16.dp)
@@ -496,7 +515,7 @@ private fun CarouselSection() {
                             Text(
                                 text = item.contentDescription,
                                 style = MaterialTheme.typography.titleMedium.copy(
-                                    color = colorScheme.primary,
+                                    color = BrandAccent,
                                     fontWeight = FontWeight.SemiBold
                                 ),
                                 maxLines = 2,
@@ -513,11 +532,7 @@ private fun CarouselSection() {
             horizontalArrangement = Arrangement.Center
         ) {
             repeat(carouselItems.size) { index ->
-                val indicatorColor = if (pagerState.currentPage == index) {
-                    colorScheme.primary
-                } else {
-                    colorScheme.primary.copy(alpha = 0.35f)
-                }
+                val indicatorColor = if (pagerState.currentPage == index) BrandAccent else BrandAccent.copy(alpha = 0.4f)
                 Box(
                     modifier = Modifier
                         .padding(horizontal = 4.dp)
@@ -541,7 +556,6 @@ private fun CategoryChip(
     selected: Boolean,
     onClick: () -> Unit
 ) {
-    val colorScheme = MaterialTheme.colorScheme
     AssistChip(
         onClick = onClick,
         label = {
@@ -552,17 +566,12 @@ private fun CategoryChip(
         },
         shape = RoundedCornerShape(24.dp),
         colors = AssistChipDefaults.assistChipColors(
-            containerColor = if (selected) {
-                colorScheme.primary.copy(alpha = 0.35f)
-            } else {
-                colorScheme.primary.copy(alpha = 0.18f)
-            },
-            labelColor = colorScheme.primary,
-            leadingIconContentColor = colorScheme.primary
+            containerColor = if (selected) BrandAccent.copy(alpha = 0.3f) else BrandAccent.copy(alpha = 0.15f),
+            labelColor = BrandAccent
         ),
         border = BorderStroke(
             width = 1.dp,
-            color = if (selected) colorScheme.primary else colorScheme.primary.copy(alpha = 0.4f)
+            color = if (selected) BrandAccent else BrandAccent.copy(alpha = 0.4f)
         )
     )
 }
@@ -578,7 +587,7 @@ private fun ProductCard(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            containerColor = BrandDeepBlue.copy(alpha = 0.7f)
         ),
         shape = RoundedCornerShape(16.dp)
     ) {
@@ -605,20 +614,18 @@ private fun ProductCard(
                 Text(
                     text = producto.nombre,
                     style = MaterialTheme.typography.titleMedium.copy(
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = BrandAccent,
                         fontWeight = FontWeight.SemiBold
                     )
                 )
                 Text(
                     text = "${producto.categoria} • ${producto.codigo}",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    style = MaterialTheme.typography.bodyMedium.copy(color = BrandAccent.copy(alpha = 0.8f))
                 )
                 Text(
                     text = "$${producto.precio} CLP",
                     style = MaterialTheme.typography.titleSmall.copy(
-                        color = MaterialTheme.colorScheme.primary,
+                        color = BrandAccent,
                         fontWeight = FontWeight.Medium
                     )
                 )
@@ -642,9 +649,7 @@ private fun LocationCard(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 120.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-        ),
+        colors = CardDefaults.cardColors(containerColor = BrandDeepBlue.copy(alpha = 0.7f)),
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(
@@ -656,7 +661,7 @@ private fun LocationCard(
             Text(
                 text = "Tu ubicación",
                 style = MaterialTheme.typography.titleMedium.copy(
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = BrandAccent,
                     fontWeight = FontWeight.SemiBold
                 )
             )
@@ -664,25 +669,19 @@ private fun LocationCard(
                 LocationUiState.Idle -> {
                     Text(
                         text = "Comparte tu ubicación para obtener tu dirección.",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        style = MaterialTheme.typography.bodyMedium.copy(color = BrandAccent.copy(alpha = 0.8f))
                     )
                 }
                 LocationUiState.Loading -> {
                     Text(
                         text = "Obteniendo dirección...",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        style = MaterialTheme.typography.bodyMedium.copy(color = BrandAccent.copy(alpha = 0.8f))
                     )
                 }
                 is LocationUiState.Success -> {
                     Text(
                         text = state.address,
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+                        style = MaterialTheme.typography.bodyMedium.copy(color = BrandAccent)
                     )
                 }
                 is LocationUiState.Error -> {
@@ -697,21 +696,11 @@ private fun LocationCard(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 if (!hasPermission) {
-                    TextButton(
-                        onClick = onRequestPermission,
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = MaterialTheme.colorScheme.primary
-                        )
-                    ) {
+                    TextButton(onClick = onRequestPermission) {
                         Text("Permitir ubicación")
                     }
                 }
-                TextButton(
-                    onClick = onRefresh,
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = MaterialTheme.colorScheme.primary
-                    )
-                ) {
+                TextButton(onClick = onRefresh) {
                     Text("Actualizar")
                 }
             }
