@@ -2,6 +2,7 @@ package cl.duoc.levelupapp.ui.carrito
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -15,8 +16,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -24,11 +29,14 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import cl.duoc.levelupapp.ui.carrito.components.UiCarritoCard
@@ -42,11 +50,16 @@ fun CarritoScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        containerColor = Color.Transparent,
         contentColor = MaterialTheme.colorScheme.onSurface,
         topBar = {
             TopAppBar(
                 title = { Text(text = "Tu carrito") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
+                ),
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -58,66 +71,49 @@ fun CarritoScreen(
             )
         }
     ) { padding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-                .padding(padding)
-                .padding(horizontal = 16.dp)
-                .navigationBarsPadding(),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.surfaceContainerHigh,
+                            MaterialTheme.colorScheme.surface
+                        )
+                    )
+                )
         ) {
-            if (uiState.items.isEmpty()) {
-                EmptyCartState()
-            } else {
-                LazyColumn(
-                    modifier = Modifier.weight(1f, fill = false),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(vertical = 8.dp)
-                ) {
-                    items(uiState.items, key = { it.producto.codigo }) { item ->
-                        UiCarritoCard(
-                            item = item,
-                            onIncrease = { viewModel.incrementarCantidad(item.producto.codigo) },
-                            onDecrease = { viewModel.decrementarCantidad(item.producto.codigo) },
-                            onRemove = { viewModel.quitarProducto(item.producto.codigo) }
-                        )
-                    }
-                }
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 24.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = "Total de productos: ${uiState.totalItems}",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Text(
-                        text = "Total a pagar: $${uiState.formattedTotal} CLP",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    )
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(horizontal = 16.dp)
+                    .navigationBarsPadding(),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                if (uiState.items.isEmpty()) {
+                    EmptyCartState()
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.weight(1f, fill = false),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(vertical = 8.dp)
                     ) {
-                        OutlinedButton(
-                            onClick = { viewModel.limpiarCarrito() },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text(text = "Limpiar carrito")
-                        }
-                        Button(
-                            onClick = {},
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text(text = "Pagar")
+                        items(uiState.items, key = { it.producto.codigo }) { item ->
+                            UiCarritoCard(
+                                item = item,
+                                onIncrease = { viewModel.incrementarCantidad(item.producto.codigo) },
+                                onDecrease = { viewModel.decrementarCantidad(item.producto.codigo) },
+                                onRemove = { viewModel.quitarProducto(item.producto.codigo) }
+                            )
                         }
                     }
+
+                    SummarySection(
+                        totalItems = uiState.totalItems,
+                        formattedTotal = uiState.formattedTotal,
+                        onClear = { viewModel.limpiarCarrito() }
+                    )
                 }
             }
         }
@@ -144,5 +140,69 @@ private fun EmptyCartState() {
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+
+@Composable
+private fun SummarySection(
+    totalItems: Int,
+    formattedTotal: String,
+    onClear: () -> Unit,
+    onCheckout: () -> Unit = {}
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+        ),
+        shape = RoundedCornerShape(24.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    text = "Resumen",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = "Total de productos: $totalItems",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "Total a pagar: $$formattedTotal CLP",
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        fontWeight = FontWeight.SemiBold
+                    ),
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedButton(
+                    onClick = onClear,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(text = "Limpiar carrito")
+                }
+                FilledTonalButton(
+                    onClick = onCheckout,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(text = "Pagar")
+                }
+            }
+        }
     }
 }

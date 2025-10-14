@@ -90,6 +90,8 @@ import cl.duoc.levelupapp.ui.carrito.CarritoViewModel
 import cl.duoc.levelupapp.model.Producto
 import cl.duoc.levelupapp.ui.theme.LevelUppAppTheme
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.google.android.gms.tasks.CancellationTokenSource
 import java.io.IOException
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
@@ -322,10 +324,14 @@ fun PrincipalScreen(
                                 focusedPlaceholderColor = BrandAccent.copy(alpha = 0.7f)
                             )
                         )
-                        Surface(
-                            modifier = Modifier.size(52.dp),
-                            shape = CircleShape,
-                            color = BrandAccent.copy(alpha = 0.2f)
+                        Box(
+                            modifier = Modifier
+                                .size(52.dp)
+                                .background(
+                                    color = BrandAccent.copy(alpha = 0.2f),
+                                    shape = CircleShape
+                                ),
+                            contentAlignment = Alignment.Center
                         ) {
                             BadgedBox(
                                 badge = {
@@ -735,8 +741,31 @@ private suspend fun fetchAddress(context: Context): String? {
 @SuppressLint("MissingPermission")
 private suspend fun obtainLocation(context: Context): Location? {
     val provider = LocationServices.getFusedLocationProviderClient(context)
-    return suspendCancellableCoroutine { continuation ->
+
+    val lastKnown = suspendCancellableCoroutine { continuation: kotlinx.coroutines.CancellableContinuation<Location?> ->
         provider.lastLocation
+            .addOnSuccessListener { location ->
+                if (continuation.isActive) {
+                    continuation.resume(location)
+                }
+            }
+            .addOnFailureListener {
+                if (continuation.isActive) {
+                    continuation.resume(null)
+                }
+            }
+    }
+
+    if (lastKnown != null) {
+        return lastKnown
+    }
+
+    val cancellationTokenSource = CancellationTokenSource()
+
+    return suspendCancellableCoroutine { continuation: kotlinx.coroutines.CancellableContinuation<Location?> ->
+        continuation.invokeOnCancellation { cancellationTokenSource.cancel() }
+        provider
+            .getCurrentLocation(Priority.PRIORITY_BALANCED_POWER_ACCURACY, cancellationTokenSource.token)
             .addOnSuccessListener { location ->
                 if (continuation.isActive) {
                     continuation.resume(location)
