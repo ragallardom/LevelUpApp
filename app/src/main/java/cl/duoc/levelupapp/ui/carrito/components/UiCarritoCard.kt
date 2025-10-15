@@ -32,6 +32,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import cl.duoc.levelupapp.model.Producto
 import cl.duoc.levelupapp.ui.carrito.CarritoItem
+import cl.duoc.levelupapp.ui.theme.BrandColors
+
+private val BrandAccent = BrandColors.Accent
+private val BrandSurface = BrandColors.SurfaceElevated
+private val BrandOnDark = BrandColors.OnDark
+private val BrandOnMuted = BrandColors.OnMuted
 
 @Composable
 fun UiCarritoCard(
@@ -44,7 +50,7 @@ fun UiCarritoCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+            containerColor = BrandSurface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -63,13 +69,14 @@ fun UiCarritoCard(
             ) {
                 Text(
                     text = item.producto.nombre,
+                    color = BrandOnDark,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
                 )
                 Text(
                     text = "$${item.producto.precio} CLP",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = BrandAccent
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -79,15 +86,24 @@ fun UiCarritoCard(
                         onClick = onDecrease,
                         enabled = item.cantidad > 1
                     ) {
-                        Icon(imageVector = Icons.Filled.Remove, contentDescription = "Disminuir cantidad")
+                        Icon(
+                            imageVector = Icons.Filled.Remove,
+                            contentDescription = "Disminuir cantidad",
+                            tint = BrandAccent
+                        )
                     }
                     Text(
                         text = item.cantidad.toString(),
+                        color = BrandOnDark,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Medium
                     )
                     IconButton(onClick = onIncrease) {
-                        Icon(imageVector = Icons.Filled.Add, contentDescription = "Aumentar cantidad")
+                        Icon(
+                            imageVector = Icons.Filled.Add,
+                            contentDescription = "Aumentar cantidad",
+                            tint = BrandAccent
+                        )
                     }
                 }
             }
@@ -95,11 +111,15 @@ fun UiCarritoCard(
             FilledTonalButton(
                 onClick = onRemove,
                 colors = ButtonDefaults.filledTonalButtonColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer,
-                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                    containerColor = BrandSurface,
+                    contentColor = BrandAccent
                 )
             ) {
-                Icon(imageVector = Icons.Filled.Delete, contentDescription = "Quitar del carrito")
+                Icon(
+                    imageVector = Icons.Filled.Delete,
+                    contentDescription = "Quitar del carrito",
+                    tint = BrandAccent
+                )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(text = "Quitar")
             }

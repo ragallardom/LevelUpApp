@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -36,12 +37,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import cl.duoc.levelupapp.model.Producto
+import cl.duoc.levelupapp.ui.theme.BrandColors
+
+private val BrandShadow = BrandColors.Shadow
+private val BrandMidnight = BrandColors.Midnight
+private val BrandDeepBlue = BrandColors.DeepBlue
+private val BrandSurface = BrandColors.Surface
+private val BrandSurfaceElevated = BrandColors.SurfaceElevated
+private val BrandAccent = BrandColors.Accent
+private val BrandOnDark = BrandColors.OnDark
+private val BrandOnMuted = BrandColors.OnMuted
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,6 +65,8 @@ fun ProductDetailScreen(
     onSuggestedProductClick: (Producto) -> Unit
 ) {
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
                 title = { Text(text = producto.nombre, maxLines = 1, overflow = TextOverflow.Ellipsis) },
@@ -65,9 +79,9 @@ fun ProductDetailScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
+                    containerColor = BrandDeepBlue,
+                    titleContentColor = BrandAccent,
+                    navigationIconContentColor = BrandAccent
                 )
             )
         }
@@ -77,10 +91,7 @@ fun ProductDetailScreen(
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
-                        listOf(
-                            MaterialTheme.colorScheme.surfaceContainerHigh,
-                            MaterialTheme.colorScheme.surface
-                        )
+                        listOf(BrandShadow, BrandMidnight, BrandDeepBlue)
                     )
                 )
                 .padding(paddingValues)
@@ -95,7 +106,7 @@ fun ProductDetailScreen(
                         .height(220.dp),
                     shape = RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                        containerColor = BrandSurfaceElevated
                     )
                 ) {
                     Box(
@@ -118,17 +129,18 @@ fun ProductDetailScreen(
                 ) {
                     Text(
                         text = producto.nombre,
+                        color = BrandOnDark,
                         style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold)
                     )
                     Text(
                         text = "${producto.categoria} • ${producto.codigo}",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = BrandOnMuted
                     )
                     Text(
                         text = "$${producto.precio} CLP",
                         style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = BrandAccent,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
@@ -137,6 +149,7 @@ fun ProductDetailScreen(
             item {
                 Text(
                     text = "Descripción",
+                    color = BrandOnDark,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
                 )
             }
@@ -145,7 +158,7 @@ fun ProductDetailScreen(
                 Text(
                     text = producto.descripcion,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = BrandOnMuted
                 )
             }
 
@@ -153,7 +166,10 @@ fun ProductDetailScreen(
                 Button(
                     onClick = onAddToCart,
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = BrandAccent,
+                        contentColor = BrandDeepBlue
+                    )
                 ) {
                     Text(text = "Añadir al carrito")
                 }
@@ -164,6 +180,7 @@ fun ProductDetailScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "Sugeridos de ${producto.categoria}",
+                        color = BrandOnDark,
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
                     )
                 }
@@ -196,7 +213,7 @@ private fun SuggestedProductCard(
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+            containerColor = BrandSurface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -221,13 +238,14 @@ private fun SuggestedProductCard(
                 Text(
                     text = producto.nombre,
                     style = MaterialTheme.typography.bodyLarge,
+                    color = BrandOnDark,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = "$${producto.precio} CLP",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = BrandAccent,
                     fontWeight = FontWeight.SemiBold
                 )
             }
