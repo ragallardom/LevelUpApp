@@ -27,7 +27,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import cl.duoc.levelupapp.ui.home.components.AnimatedLogo
-import cl.duoc.levelupapp.ui.theme.LevelUpGradientColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,20 +53,14 @@ fun HomeScreen(
                 .fillMaxSize()
                 .background(
                     brush = Brush.verticalGradient(
-                        colors = LevelUpGradientColors
+                        colors = listOf(
+                            Color(0xFF000000),
+                            Color(0xFF010E1C),
+                            Color(0xFF01142E)
+                        )
                     )
-                )
-                .padding(innerPadding)
-        ) {
-            HomeContent(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                onLoginClick = onLoginClick,
-                onRegisterClick = onRegisterClick,
-                onRecoverClick = onRecoverClick
-            )
-        }
+                ) .padding()
+        )
     }
 }
 
