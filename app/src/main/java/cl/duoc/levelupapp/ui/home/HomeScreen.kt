@@ -59,8 +59,15 @@ fun HomeScreen(
                             Color(0xFF01142E)
                         )
                     )
-                ) .padding()
-        )
+                )
+                .padding(innerPadding)
+        ) {
+            HomeContent(
+                onLoginClick = onLoginClick,
+                onRegisterClick = onRegisterClick,
+                onRecoverClick = onRecoverClick
+            )
+        }
     }
 }
 
