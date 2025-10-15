@@ -19,12 +19,13 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-    import cl.duoc.levelupapp.R
+import cl.duoc.levelupapp.R
+import cl.duoc.levelupapp.ui.theme.BrandColors
 
-private val BrandShadow = Color(0xFF000000)
-private val BrandMidnight = Color(0xFF010E1C)
-private val BrandDeepBlue = Color(0xFF01142E)
-private val BrandAccent = Color(0xFFA8BFCD)
+private val BrandShadow = BrandColors.Shadow
+private val BrandMidnight = BrandColors.Midnight
+private val BrandDeepBlue = BrandColors.DeepBlue
+private val BrandAccent = BrandColors.Accent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

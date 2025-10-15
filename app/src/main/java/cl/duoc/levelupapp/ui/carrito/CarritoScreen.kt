@@ -1,27 +1,30 @@
 package cl.duoc.levelupapp.ui.carrito
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.BorderStroke
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -40,7 +43,16 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import cl.duoc.levelupapp.ui.theme.BrandColors
 import cl.duoc.levelupapp.ui.carrito.components.UiCarritoCard
+
+private val BrandShadow = BrandColors.Shadow
+private val BrandMidnight = BrandColors.Midnight
+private val BrandDeepBlue = BrandColors.DeepBlue
+private val BrandAccent = BrandColors.Accent
+private val BrandSurface = BrandColors.Surface
+private val BrandOnDark = BrandColors.OnDark
+private val BrandOnMuted = BrandColors.OnMuted
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,15 +63,21 @@ fun CarritoScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = Color.Transparent,
-        contentColor = MaterialTheme.colorScheme.onSurface,
         topBar = {
             TopAppBar(
-                title = { Text(text = "Tu carrito") },
+                title = {
+                    Text(
+                        text = "Tu carrito",
+                        color = BrandAccent,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
+                    containerColor = BrandDeepBlue,
+                    titleContentColor = BrandAccent,
+                    navigationIconContentColor = BrandAccent
                 ),
                 navigationIcon = {
                     IconButton(onClick = onBack) {
@@ -78,8 +96,9 @@ fun CarritoScreen(
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            MaterialTheme.colorScheme.surfaceContainerHigh,
-                            MaterialTheme.colorScheme.surface
+                            BrandShadow,
+                            BrandMidnight,
+                            BrandDeepBlue
                         )
                     )
                 )
@@ -133,12 +152,13 @@ private fun EmptyCartState() {
         Text(
             text = "Tu carrito está vacío",
             style = MaterialTheme.typography.titleMedium,
+            color = BrandOnDark,
             fontWeight = FontWeight.SemiBold
         )
         Text(
             text = "Agrega productos desde la lista para verlos aquí.",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = BrandOnMuted
         )
         Spacer(modifier = Modifier.height(24.dp))
     }
@@ -156,7 +176,7 @@ private fun SummarySection(
             .fillMaxWidth()
             .padding(bottom = 24.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            containerColor = BrandSurface
         ),
         shape = RoundedCornerShape(24.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
@@ -169,26 +189,27 @@ private fun SummarySection(
                 Text(
                     text = "Resumen",
                     style = MaterialTheme.typography.titleMedium,
+                    color = BrandOnDark,
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
                     text = "Total de productos: $totalItems",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = BrandOnMuted
                 )
                 Text(
                     text = "Total a pagar: $$formattedTotal CLP",
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.SemiBold
                     ),
-                    color = MaterialTheme.colorScheme.primary
+                    color = BrandAccent
                 )
             }
 
             HorizontalDivider(
                 Modifier,
                 DividerDefaults.Thickness,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                color = BrandAccent.copy(alpha = 0.2f)
             )
 
             Row(
@@ -197,13 +218,21 @@ private fun SummarySection(
             ) {
                 OutlinedButton(
                     onClick = onClear,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    border = BorderStroke(1.dp, BrandAccent),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = BrandAccent
+                    )
                 ) {
                     Text(text = "Limpiar carrito")
                 }
                 FilledTonalButton(
                     onClick = onCheckout,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = BrandAccent,
+                        contentColor = BrandDeepBlue
+                    )
                 ) {
                     Text(text = "Pagar")
                 }
