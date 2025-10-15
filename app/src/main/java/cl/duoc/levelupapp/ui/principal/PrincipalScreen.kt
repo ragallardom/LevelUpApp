@@ -88,6 +88,7 @@ import androidx.annotation.DrawableRes
 import cl.duoc.levelupapp.R
 import cl.duoc.levelupapp.ui.carrito.CarritoViewModel
 import cl.duoc.levelupapp.model.Producto
+import cl.duoc.levelupapp.ui.theme.BrandColors
 import cl.duoc.levelupapp.ui.theme.LevelUppAppTheme
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
@@ -101,10 +102,10 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.resume
 
-private val BrandShadow = Color(0xFF000000)
-private val BrandMidnight = Color(0xFF010E1C)
-private val BrandDeepBlue = Color(0xFF01142E)
-private val BrandAccent = Color(0xFFA8BFCD)
+private val BrandShadow = BrandColors.Shadow
+private val BrandMidnight = BrandColors.Midnight
+private val BrandDeepBlue = BrandColors.DeepBlue
+private val BrandAccent = BrandColors.Accent
 
 data class CarouselItem(
     @DrawableRes val imageRes: Int,
