@@ -17,6 +17,8 @@ import cl.duoc.levelupapp.ui.login.LoginScreen
 import cl.duoc.levelupapp.ui.principal.PrincipalScreen
 import cl.duoc.levelupapp.ui.producto.ProductDetailScreen
 import cl.duoc.levelupapp.model.productosDemo
+import cl.duoc.levelupapp.ui.recover.RecuperarPasswordScreen
+import cl.duoc.levelupapp.ui.register.RegistrarseScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -104,6 +106,30 @@ fun AppNavHost() {
             } else {
                 nav.popBackStack()
             }
+        }
+
+        composable(Route.Register.path) {
+            RegistrarseScreen(
+                onBack = { nav.popBackStack() },
+                onRegistered = {
+                    nav.navigate(Route.Login.path) {
+                        popUpTo(Route.HomeRoot.path) { inclusive = false }
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+
+        composable(Route.RecoverPassword.path) {
+            RecuperarPasswordScreen(
+                onBack = { nav.popBackStack() },
+                onSent = {
+                    nav.navigate(Route.Login.path) {
+                        popUpTo(Route.HomeRoot.path) { inclusive = false }
+                        launchSingleTop = true
+                    }
+                }
+            )
         }
     }
 }
