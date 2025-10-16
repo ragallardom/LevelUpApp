@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -42,9 +44,8 @@ fun HomeScreen(
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    // Altura estándar de una TopAppBar pequeña. Puedes ajustarla si quieres.
-                    .height(22.dp),
-                color = MaterialTheme.colorScheme.surface // Le damos el color de fondo deseado
+                    .windowInsetsPadding(WindowInsets.statusBars),
+                color = MaterialTheme.colorScheme.surface
             ) {}
         }
     ) { innerPadding ->
@@ -125,7 +126,15 @@ private fun HomeContent(
             }
         }
 
-        Spacer(modifier = Modifier.height(380.dp))
+        Spacer(modifier = Modifier.weight(1f))
+
+        Text(
+            text = "© 2024 LevelUp. Todos los derechos reservados.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+            modifier = Modifier
+                .padding(bottom = 32.dp)
+        )
     }
 }
 
