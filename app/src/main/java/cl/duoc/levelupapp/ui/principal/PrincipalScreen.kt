@@ -33,6 +33,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Category
@@ -62,6 +63,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.Divider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -148,6 +150,7 @@ fun PrincipalScreen(
             ) == PackageManager.PERMISSION_GRANTED
         )
     }
+    var suggestionsVisible by remember { mutableStateOf(false) }
 
     val uiState by viewModel.ui.collectAsState()
     val categoriaSeleccionada by viewModel.categoriaSel.collectAsState()
@@ -184,16 +187,23 @@ fun PrincipalScreen(
         }
     }
 
-    val displayedProducts = if (searchQuery.isBlank()) {
+    val trimmedQuery = searchQuery.trim()
+    val normalizedQuery = trimmedQuery.lowercase(Locale.getDefault())
+    val filteredProducts = if (trimmedQuery.isBlank()) {
         productos
     } else {
-        val query = searchQuery.trim().lowercase(Locale.getDefault())
         productos.filter { producto ->
-            producto.nombre.lowercase(Locale.getDefault()).contains(query) ||
-                producto.categoria.lowercase(Locale.getDefault()).contains(query) ||
-                producto.codigo.lowercase(Locale.getDefault()).contains(query)
+            val nombre = producto.nombre.lowercase(Locale.getDefault())
+            val categoria = producto.categoria.lowercase(Locale.getDefault())
+            val codigo = producto.codigo.lowercase(Locale.getDefault())
+            nombre.contains(normalizedQuery) ||
+                categoria.contains(normalizedQuery) ||
+                codigo.contains(normalizedQuery)
         }
     }
+    val suggestions = if (trimmedQuery.isNotBlank()) filteredProducts.take(5) else emptyList()
+    val displayedProducts = filteredProducts
+    val showSuggestions = suggestionsVisible && suggestions.isNotEmpty()
 
     Scaffold(
         containerColor = Color.Transparent,
@@ -303,52 +313,72 @@ fun PrincipalScreen(
                 contentPadding = PaddingValues(bottom = 32.dp, top = 24.dp)
             ) {
                 item {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        OutlinedTextField(
-                            value = searchQuery,
-                            onValueChange = { searchQuery = it },
-                            modifier = Modifier.weight(1f),
-                            placeholder = { Text("Buscar productos o categorías") },
-                            singleLine = true,
-                            leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar") },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = BrandAccent,
-                                unfocusedBorderColor = BrandAccent.copy(alpha = 0.6f),
-                                focusedTextColor = BrandAccent,
-                                unfocusedTextColor = BrandAccent,
-                                cursorColor = BrandAccent,
-                                focusedLeadingIconColor = BrandAccent,
-                                unfocusedLeadingIconColor = BrandAccent.copy(alpha = 0.8f),
-                                unfocusedPlaceholderColor = BrandAccent.copy(alpha = 0.7f),
-                                focusedPlaceholderColor = BrandAccent.copy(alpha = 0.7f)
-                            )
-                        )
-                        Box(
-                            modifier = Modifier
-                                .size(52.dp)
-                                .background(
-                                    color = BrandAccent.copy(alpha = 0.2f),
-                                    shape = CircleShape
-                                ),
-                            contentAlignment = Alignment.Center
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            BadgedBox(
-                                badge = {
-                                    if (carritoUiState.totalItems > 0) {
-                                        Badge { Text(text = carritoUiState.totalItems.toString()) }
+                            OutlinedTextField(
+                                value = searchQuery,
+                                onValueChange = {
+                                    searchQuery = it
+                                    suggestionsVisible = it.isNotBlank()
+                                },
+                                modifier = Modifier.weight(1f),
+                                placeholder = { Text("Buscar productos o categorías") },
+                                singleLine = true,
+                                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar") },
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = BrandAccent,
+                                    unfocusedBorderColor = BrandAccent.copy(alpha = 0.6f),
+                                    focusedTextColor = BrandAccent,
+                                    unfocusedTextColor = BrandAccent,
+                                    cursorColor = BrandAccent,
+                                    focusedLeadingIconColor = BrandAccent,
+                                    unfocusedLeadingIconColor = BrandAccent.copy(alpha = 0.8f),
+                                    unfocusedPlaceholderColor = BrandAccent.copy(alpha = 0.7f),
+                                    focusedPlaceholderColor = BrandAccent.copy(alpha = 0.7f)
+                                )
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .size(52.dp)
+                                    .background(
+                                        color = BrandAccent.copy(alpha = 0.2f),
+                                        shape = CircleShape
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                BadgedBox(
+                                    badge = {
+                                        if (carritoUiState.totalItems > 0) {
+                                            Badge { Text(text = carritoUiState.totalItems.toString()) }
+                                        }
+                                    }
+                                ) {
+                                    IconButton(onClick = onCartClick) {
+                                        Icon(
+                                            imageVector = Icons.Default.ShoppingCart,
+                                            contentDescription = "Carrito de compras",
+                                            tint = BrandAccent
+                                        )
                                     }
                                 }
-                            ) {
-                                IconButton(onClick = onCartClick) {
-                                    Icon(
-                                        imageVector = Icons.Default.ShoppingCart,
-                                        contentDescription = "Carrito de compras",
-                                        tint = BrandAccent
-                                    )
-                                }
+                            }
+                        }
+                        AnimatedVisibility(
+                            visible = showSuggestions,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            SearchSuggestions(
+                                suggestions = suggestions,
+                                modifier = Modifier.fillMaxWidth()
+                            ) { producto ->
+                                searchQuery = producto.nombre
+                                suggestionsVisible = false
                             }
                         }
                     }
@@ -575,6 +605,79 @@ private fun CategoryChip(
             color = if (selected) BrandAccent else BrandAccent.copy(alpha = 0.4f)
         )
     )
+}
+
+@Composable
+private fun SearchSuggestions(
+    suggestions: List<Producto>,
+    modifier: Modifier = Modifier,
+    onSuggestionSelected: (Producto) -> Unit
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        color = BrandMidnight.copy(alpha = 0.92f),
+        border = BorderStroke(1.dp, BrandAccent.copy(alpha = 0.3f))
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            suggestions.forEachIndexed { index, producto ->
+                SearchSuggestionItem(
+                    producto = producto,
+                    onSuggestionSelected = onSuggestionSelected
+                )
+                if (index != suggestions.lastIndex) {
+                    Divider(color = BrandAccent.copy(alpha = 0.2f))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SearchSuggestionItem(
+    producto: Producto,
+    onSuggestionSelected: (Producto) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onSuggestionSelected(producto) }
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = producto.nombre,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    color = BrandAccent
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = "${producto.categoria} • ${producto.codigo}",
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = BrandAccent.copy(alpha = 0.8f)
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+        Text(
+            text = "$${producto.precio}",
+            style = MaterialTheme.typography.bodyMedium.copy(
+                color = BrandAccent,
+                fontWeight = FontWeight.Medium
+            )
+        )
+    }
 }
 
 @Composable
