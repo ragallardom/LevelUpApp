@@ -64,6 +64,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.Divider
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -205,8 +209,15 @@ fun PrincipalScreen(
     val displayedProducts = filteredProducts
     val showSuggestions = suggestionsVisible && suggestions.isNotEmpty()
 
+    val snackbarHostState = remember { SnackbarHostState() }
+
     Scaffold(
         containerColor = Color.Transparent,
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { data ->
+                Snackbar(snackbarData = data)
+            }
+        },
         topBar = {
             Surface(
                 modifier = Modifier
@@ -477,7 +488,17 @@ fun PrincipalScreen(
                     items(displayedProducts, key = { it.codigo }) { product ->
                         ProductCard(
                             producto = product,
-                            onAddToCart = { carritoViewModel.agregarProducto(product) },
+                            onAddToCart = {
+                                carritoViewModel.agregarProducto(product)
+                                scope.launch {
+                                    snackbarHostState.currentSnackbarData?.dismiss()
+                                    snackbarHostState.showSnackbar(
+                                        message = "Producto agregado al carrito",
+                                        withDismissAction = false,
+                                        duration = SnackbarDuration.Short
+                                    )
+                                }
+                            },
                             onClick = { onProductClick(product) }
                         )
                     }
