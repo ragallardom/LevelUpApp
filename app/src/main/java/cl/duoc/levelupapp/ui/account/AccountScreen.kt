@@ -73,11 +73,11 @@ private val BrandAccent = BrandColors.Accent
 @Composable
 fun AccountScreen(
     modifier: Modifier = Modifier,
-    email: String?,
-    viewModel: AccountViewModel = viewModel()
+    email: String?
 ) {
-    val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val viewModel: AccountViewModel = viewModel(factory = AccountViewModel.provideFactory(context))
+    val state by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(email) {

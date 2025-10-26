@@ -8,20 +8,29 @@ import cl.duoc.levelupapp.data.local.CarritoDbHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class SqliteCarritoRepository(context: Context) : CarritoRepository {
+class SqliteCarritoRepository(
+    context: Context,
+    private val userIdProvider: () -> String?
+) : CarritoRepository {
 
     private val dbHelper = CarritoDbHelper(context.applicationContext)
 
+    private fun resolveUserId(): String {
+        return userIdProvider().orEmpty().ifBlank { ANONYMOUS_USER_ID }
+    }
+
     override suspend fun getItems(): List<CarritoEntity> = withContext(Dispatchers.IO) {
         val db = dbHelper.readableDatabase
+        val userId = resolveUserId()
         val cursor = db.query(
             CarritoContract.CarritoEntry.TABLE_NAME,
             arrayOf(
+                CarritoContract.CarritoEntry.COLUMN_USER_ID,
                 CarritoContract.CarritoEntry.COLUMN_CODIGO,
                 CarritoContract.CarritoEntry.COLUMN_CANTIDAD
             ),
-            null,
-            null,
+            "${CarritoContract.CarritoEntry.COLUMN_USER_ID} = ?",
+            arrayOf(userId),
             null,
             null,
             null
@@ -29,8 +38,8 @@ class SqliteCarritoRepository(context: Context) : CarritoRepository {
         cursor.use { resultCursor ->
             val items = mutableListOf<CarritoEntity>()
             while (resultCursor.moveToNext()) {
-                val codigoIndex =
-                    resultCursor.getColumnIndexOrThrow(CarritoContract.CarritoEntry.COLUMN_CODIGO)
+                val codigoIndex = resultCursor
+                    .getColumnIndexOrThrow(CarritoContract.CarritoEntry.COLUMN_CODIGO)
                 val cantidadIndex =
                     resultCursor.getColumnIndexOrThrow(CarritoContract.CarritoEntry.COLUMN_CANTIDAD)
                 items.add(
@@ -46,11 +55,13 @@ class SqliteCarritoRepository(context: Context) : CarritoRepository {
 
     override suspend fun addOrIncrement(codigo: String) = withContext(Dispatchers.IO) {
         val db = dbHelper.writableDatabase
+        val userId = resolveUserId()
         db.beginTransaction()
         try {
-            val currentQuantity = queryQuantity(db, codigo)
+            val currentQuantity = queryQuantity(db, userId, codigo)
             val newQuantity = currentQuantity + 1
             val values = ContentValues().apply {
+                put(CarritoContract.CarritoEntry.COLUMN_USER_ID, userId)
                 put(CarritoContract.CarritoEntry.COLUMN_CODIGO, codigo)
                 put(CarritoContract.CarritoEntry.COLUMN_CANTIDAD, newQuantity)
             }
@@ -68,6 +79,7 @@ class SqliteCarritoRepository(context: Context) : CarritoRepository {
 
     override suspend fun updateQuantity(codigo: String, cantidad: Int) = withContext(Dispatchers.IO) {
         val db = dbHelper.writableDatabase
+        val userId = resolveUserId()
         db.beginTransaction()
         try {
             if (cantidad > 0) {
@@ -77,14 +89,16 @@ class SqliteCarritoRepository(context: Context) : CarritoRepository {
                 db.update(
                     CarritoContract.CarritoEntry.TABLE_NAME,
                     values,
-                    "${CarritoContract.CarritoEntry.COLUMN_CODIGO} = ?",
-                    arrayOf(codigo)
+                    "${CarritoContract.CarritoEntry.COLUMN_USER_ID} = ? AND " +
+                        "${CarritoContract.CarritoEntry.COLUMN_CODIGO} = ?",
+                    arrayOf(userId, codigo)
                 )
             } else {
                 db.delete(
                     CarritoContract.CarritoEntry.TABLE_NAME,
-                    "${CarritoContract.CarritoEntry.COLUMN_CODIGO} = ?",
-                    arrayOf(codigo)
+                    "${CarritoContract.CarritoEntry.COLUMN_USER_ID} = ? AND " +
+                        "${CarritoContract.CarritoEntry.COLUMN_CODIGO} = ?",
+                    arrayOf(userId, codigo)
                 )
             }
             db.setTransactionSuccessful()
@@ -95,26 +109,34 @@ class SqliteCarritoRepository(context: Context) : CarritoRepository {
 
     override suspend fun removeItem(codigo: String) = withContext(Dispatchers.IO) {
         val db = dbHelper.writableDatabase
+        val userId = resolveUserId()
         db.delete(
             CarritoContract.CarritoEntry.TABLE_NAME,
-            "${CarritoContract.CarritoEntry.COLUMN_CODIGO} = ?",
-            arrayOf(codigo)
+            "${CarritoContract.CarritoEntry.COLUMN_USER_ID} = ? AND " +
+                "${CarritoContract.CarritoEntry.COLUMN_CODIGO} = ?",
+            arrayOf(userId, codigo)
         )
         Unit
     }
 
     override suspend fun clear() = withContext(Dispatchers.IO) {
         val db = dbHelper.writableDatabase
-        db.delete(CarritoContract.CarritoEntry.TABLE_NAME, null, null)
+        val userId = resolveUserId()
+        db.delete(
+            CarritoContract.CarritoEntry.TABLE_NAME,
+            "${CarritoContract.CarritoEntry.COLUMN_USER_ID} = ?",
+            arrayOf(userId)
+        )
         Unit
     }
 
-    private fun queryQuantity(db: SQLiteDatabase, codigo: String): Int {
+    private fun queryQuantity(db: SQLiteDatabase, userId: String, codigo: String): Int {
         val cursor = db.query(
             CarritoContract.CarritoEntry.TABLE_NAME,
             arrayOf(CarritoContract.CarritoEntry.COLUMN_CANTIDAD),
-            "${CarritoContract.CarritoEntry.COLUMN_CODIGO} = ?",
-            arrayOf(codigo),
+            "${CarritoContract.CarritoEntry.COLUMN_USER_ID} = ? AND " +
+                "${CarritoContract.CarritoEntry.COLUMN_CODIGO} = ?",
+            arrayOf(userId, codigo),
             null,
             null,
             null
@@ -127,5 +149,9 @@ class SqliteCarritoRepository(context: Context) : CarritoRepository {
                 0
             }
         }
+    }
+
+    companion object {
+        private const val ANONYMOUS_USER_ID = "anonymous"
     }
 }
