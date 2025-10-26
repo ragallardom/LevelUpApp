@@ -131,7 +131,7 @@ private fun HomeContent(
         Text(
             text = "© 2025 LevelUp. Todos los derechos reservados.",
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.9f),
+            color = MaterialTheme.colorScheme.background.copy(alpha = 0.4f),
             modifier = Modifier
                 .padding(bottom = 32.dp)
         )
