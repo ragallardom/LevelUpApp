@@ -414,7 +414,7 @@ private fun loadBitmapFromUri(context: Context, uri: Uri): Bitmap? {
             @Suppress("DEPRECATION")
             MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
         }
-    } catch (exception: Exception) {
+    } catch (_: Exception) {
         null
     }
 }

@@ -50,7 +50,6 @@ import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -93,6 +92,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.annotation.DrawableRes
+import androidx.compose.material3.DividerDefaults
+import androidx.compose.material3.HorizontalDivider
 import cl.duoc.levelupapp.R
 import cl.duoc.levelupapp.model.Producto
 import cl.duoc.levelupapp.model.productosDemo
@@ -784,7 +785,11 @@ private fun SearchSuggestions(
                     onSuggestionSelected = onSuggestionSelected
                 )
                 if (index != suggestions.lastIndex) {
-                    Divider(color = BrandAccent.copy(alpha = 0.2f))
+                    HorizontalDivider(
+                        Modifier,
+                        DividerDefaults.Thickness,
+                        color = BrandAccent.copy(alpha = 0.2f)
+                    )
                 }
             }
         }
