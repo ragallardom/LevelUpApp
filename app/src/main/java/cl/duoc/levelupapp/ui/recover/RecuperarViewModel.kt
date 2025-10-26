@@ -13,6 +13,7 @@ data class RecoverUiState(
     val email: String = "",
     val loading: Boolean = false,
     val error: String? = null,
+    val emailError: String? = null,
     val sent: Boolean = false,
     val message: String? = null
 )
@@ -24,7 +25,7 @@ class RecuperarViewModel(
     private val _ui = MutableStateFlow(RecoverUiState())
     val ui: StateFlow<RecoverUiState> = _ui
 
-    fun onEmailChange(v: String) = _ui.update { it.copy(email = v, error = null, message = null) }
+    fun onEmailChange(v: String) = _ui.update { it.copy(email = v, emailError = null, error = null, message = null) }
 
     private fun validar(): String? {
         val s = _ui.value
@@ -35,12 +36,12 @@ class RecuperarViewModel(
     fun sendReset() {
         val err = validar()
         if (err != null) {
-            _ui.update { it.copy(error = err) }
+            _ui.update { it.copy(emailError = err) }
             return
         }
 
         viewModelScope.launch {
-            _ui.update { it.copy(loading = true, error = null, message = null) }
+            _ui.update { it.copy(loading = true, error = null, emailError = null, message = null) }
 
             val ok = repo.sendPasswordReset(_ui.value.email)
             _ui.update {

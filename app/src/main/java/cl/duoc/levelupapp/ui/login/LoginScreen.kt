@@ -125,6 +125,15 @@ fun LoginScreen(
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                             modifier = Modifier.fillMaxWidth(),
+                            isError = state.emailError != null,
+                            supportingText = {
+                                state.emailError?.let {
+                                    Text(
+                                        text = it,
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            },
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedTextColor = BrandAccent,
                                 unfocusedTextColor = BrandAccent,
@@ -144,6 +153,15 @@ fun LoginScreen(
                             visualTransformation = PasswordVisualTransformation(),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                             modifier = Modifier.fillMaxWidth(),
+                            isError = state.passwordError != null,
+                            supportingText = {
+                                state.passwordError?.let {
+                                    Text(
+                                        text = it,
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            },
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedTextColor = BrandAccent,
                                 unfocusedTextColor = BrandAccent,
@@ -155,8 +173,11 @@ fun LoginScreen(
                             )
                         )
 
-                        if (state.error != null) {
-                            Text(state.error!!, color = MaterialTheme.colorScheme.error)
+                        state.error?.let {
+                            Text(
+                                text = it,
+                                color = MaterialTheme.colorScheme.error
+                            )
                         }
 
                         Button(

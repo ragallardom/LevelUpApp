@@ -132,6 +132,15 @@ fun RegistrarseScreen(
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                         modifier = Modifier.fillMaxWidth(),
+                        isError = state.emailError != null,
+                        supportingText = {
+                            state.emailError?.let {
+                                Text(
+                                    text = it,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        },
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedTextColor = BrandAccent,
                             unfocusedTextColor = BrandAccent,
@@ -151,6 +160,15 @@ fun RegistrarseScreen(
                         visualTransformation = PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         modifier = Modifier.fillMaxWidth(),
+                        isError = state.passwordError != null,
+                        supportingText = {
+                            state.passwordError?.let {
+                                Text(
+                                    text = it,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        },
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedTextColor = BrandAccent,
                             unfocusedTextColor = BrandAccent,
@@ -170,6 +188,15 @@ fun RegistrarseScreen(
                         visualTransformation = PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         modifier = Modifier.fillMaxWidth(),
+                        isError = state.confirmError != null,
+                        supportingText = {
+                            state.confirmError?.let {
+                                Text(
+                                    text = it,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        },
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedTextColor = BrandAccent,
                             unfocusedTextColor = BrandAccent,
