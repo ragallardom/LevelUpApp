@@ -170,6 +170,7 @@ fun PrincipalScreen(
     val carritoUiState by carritoViewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) {
+        viewModel.refreshSession()
         viewModel.cargarProductos()
     }
 
