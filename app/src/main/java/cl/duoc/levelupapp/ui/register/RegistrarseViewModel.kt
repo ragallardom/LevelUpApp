@@ -16,6 +16,9 @@ data class RegisterUiState(
     val confirm: String = "",
     val loading: Boolean = false,
     val error: String? = null,
+    val emailError: String? = null,
+    val passwordError: String? = null,
+    val confirmError: String? = null,
     val registered: Boolean = false,
     val user: User? = null,
     val message: String? = null
@@ -28,26 +31,41 @@ class RegisterViewModel(
     private val _ui = MutableStateFlow(RegisterUiState())
     val ui: StateFlow<RegisterUiState> = _ui
 
-    fun onEmailChange(v: String)    = _ui.update { it.copy(email = v, error = null, message = null) }
-    fun onPasswordChange(v: String) = _ui.update { it.copy(password = v, error = null, message = null) }
-    fun onConfirmChange(v: String)  = _ui.update { it.copy(confirm = v, error = null, message = null) }
+    fun onEmailChange(v: String)    = _ui.update { it.copy(email = v, emailError = null, error = null, message = null) }
+    fun onPasswordChange(v: String) = _ui.update { it.copy(password = v, passwordError = null, error = null, message = null) }
+    fun onConfirmChange(v: String)  = _ui.update { it.copy(confirm = v, confirmError = null, error = null, message = null) }
 
-    private fun validar(): String? {
+    private fun validar(): Triple<String?, String?, String?> {
         val s = _ui.value
-        if (!Patterns.EMAIL_ADDRESS.matcher(s.email).matches()) return "Email inválido"
-        if (s.password.length < 6) return "La clave debe tener al menos 6 caracteres"
-        if (s.password != s.confirm) return "Las claves no coinciden"
-        return null
+        val emailError = if (!Patterns.EMAIL_ADDRESS.matcher(s.email).matches()) "Email inválido" else null
+        val passwordError = if (s.password.length < 6) "La clave debe tener al menos 6 caracteres" else null
+        val confirmError = if (passwordError == null && s.password != s.confirm) "Las claves no coinciden" else null
+        return Triple(emailError, passwordError, confirmError)
     }
 
     fun submit() {
-        val err = validar()
-        if (err != null) {
-            _ui.update { it.copy(error = err) }
+        val (emailError, passwordError, confirmError) = validar()
+        if (emailError != null || passwordError != null || confirmError != null) {
+            _ui.update {
+                it.copy(
+                    emailError = emailError,
+                    passwordError = passwordError,
+                    confirmError = confirmError
+                )
+            }
             return
         }
         viewModelScope.launch {
-            _ui.update { it.copy(loading = true, error = null, message = null) }
+            _ui.update {
+                it.copy(
+                    loading = true,
+                    error = null,
+                    message = null,
+                    emailError = null,
+                    passwordError = null,
+                    confirmError = null
+                )
+            }
             val user = repo.signUp(_ui.value.email, _ui.value.password)
             _ui.update {
                 if (user != null) it.copy(loading = false, registered = true, user = user, message = "Cuenta creada. Inicia sesión.")

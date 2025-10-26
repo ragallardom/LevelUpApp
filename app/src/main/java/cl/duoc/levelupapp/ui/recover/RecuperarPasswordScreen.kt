@@ -131,6 +131,15 @@ fun RecuperarPasswordScreen(
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                         modifier = Modifier.fillMaxWidth(),
+                        isError = state.emailError != null,
+                        supportingText = {
+                            state.emailError?.let {
+                                Text(
+                                    text = it,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        },
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedTextColor = BrandAccent,
                             unfocusedTextColor = BrandAccent,
