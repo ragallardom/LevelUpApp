@@ -129,9 +129,9 @@ private fun HomeContent(
         Spacer(modifier = Modifier.weight(1f))
 
         Text(
-            text = "© 2024 LevelUp. Todos los derechos reservados.",
+            text = "© 2025 LevelUp. Todos los derechos reservados.",
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.9f),
             modifier = Modifier
                 .padding(bottom = 32.dp)
         )
