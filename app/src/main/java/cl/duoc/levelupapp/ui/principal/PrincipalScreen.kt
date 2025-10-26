@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -49,6 +50,7 @@ import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -60,14 +62,13 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.Divider
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -85,6 +86,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -92,13 +94,15 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.annotation.DrawableRes
 import cl.duoc.levelupapp.R
-import cl.duoc.levelupapp.ui.carrito.CarritoViewModel
 import cl.duoc.levelupapp.model.Producto
 import cl.duoc.levelupapp.model.productosDemo
-import cl.duoc.levelupapp.ui.theme.BrandColors
-import cl.duoc.levelupapp.ui.theme.LevelUppAppTheme
 import cl.duoc.levelupapp.repository.carrito.CarritoEntity
 import cl.duoc.levelupapp.repository.carrito.InMemoryCarritoRepository
+import cl.duoc.levelupapp.ui.account.AccountScreen
+import cl.duoc.levelupapp.ui.carrito.CarritoUiState
+import cl.duoc.levelupapp.ui.carrito.CarritoViewModel
+import cl.duoc.levelupapp.ui.theme.BrandColors
+import cl.duoc.levelupapp.ui.theme.LevelUppAppTheme
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
@@ -213,6 +217,31 @@ fun PrincipalScreen(
     val showSuggestions = suggestionsVisible && suggestions.isNotEmpty()
 
     val snackbarHostState = remember { SnackbarHostState() }
+    val onAddProductToCart: (Producto) -> Unit = { product ->
+        carritoViewModel.agregarProducto(product)
+        scope.launch {
+            snackbarHostState.currentSnackbarData?.dismiss()
+            snackbarHostState.showSnackbar(
+                message = "Producto agregado al carrito",
+                withDismissAction = false,
+                duration = SnackbarDuration.Short
+            )
+        }
+    }
+
+    val onRequestLocationPermission = {
+        permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+    }
+
+    val onRefreshLocation = {
+        if (hasLocationPermission) {
+            scope.launch {
+                requestAddress(onStateChange = { locationState = it }, context = context)
+            }
+        } else {
+            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+    }
 
     Scaffold(
         containerColor = Color.Transparent,
@@ -239,6 +268,7 @@ fun PrincipalScreen(
                     selected = selectedOption == BottomOption.HOME,
                     onClick = {
                         selectedOption = BottomOption.HOME
+                        suggestionsVisible = searchQuery.isNotBlank()
                         viewModel.refreshHome()
                     },
                     icon = { Icon(Icons.Default.Home, contentDescription = "Inicio") },
@@ -253,7 +283,10 @@ fun PrincipalScreen(
                 )
                 NavigationBarItem(
                     selected = selectedOption == BottomOption.ACCOUNT,
-                    onClick = { selectedOption = BottomOption.ACCOUNT },
+                    onClick = {
+                        selectedOption = BottomOption.ACCOUNT
+                        suggestionsVisible = false
+                    },
                     icon = { Icon(Icons.Default.Person, contentDescription = "Mi cuenta") },
                     label = { Text("Mi cuenta") },
                     colors = NavigationBarItemDefaults.colors(
@@ -266,7 +299,10 @@ fun PrincipalScreen(
                 )
                 NavigationBarItem(
                     selected = selectedOption == BottomOption.CATEGORIES,
-                    onClick = { selectedOption = BottomOption.CATEGORIES },
+                    onClick = {
+                        selectedOption = BottomOption.CATEGORIES
+                        suggestionsVisible = false
+                    },
                     icon = { Icon(Icons.Default.Category, contentDescription = "Categorías") },
                     label = { Text("Categorías") },
                     colors = NavigationBarItemDefaults.colors(
@@ -279,7 +315,10 @@ fun PrincipalScreen(
                 )
                 NavigationBarItem(
                     selected = selectedOption == BottomOption.ORDERS,
-                    onClick = { selectedOption = BottomOption.ORDERS },
+                    onClick = {
+                        selectedOption = BottomOption.ORDERS
+                        suggestionsVisible = false
+                    },
                     icon = { Icon(Icons.Default.ShoppingBag, contentDescription = "Compras") },
                     label = { Text("Compras") },
                     colors = NavigationBarItemDefaults.colors(
@@ -294,6 +333,7 @@ fun PrincipalScreen(
                     selected = selectedOption == BottomOption.LOGOUT,
                     onClick = {
                         selectedOption = BottomOption.LOGOUT
+                        suggestionsVisible = false
                         viewModel.logout()
                     },
                     icon = { Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Logout") },
@@ -318,196 +358,287 @@ fun PrincipalScreen(
                     )
                 )
         ) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                contentPadding = PaddingValues(bottom = 32.dp, top = 24.dp)
+            when (selectedOption) {
+                BottomOption.HOME -> HomeContent(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    searchQuery = searchQuery,
+                    onSearchQueryChange = { value ->
+                        searchQuery = value
+                        suggestionsVisible = value.isNotBlank()
+                    },
+                    showSuggestions = showSuggestions,
+                    suggestions = suggestions,
+                    onSuggestionSelected = { producto ->
+                        searchQuery = producto.nombre
+                        suggestionsVisible = false
+                    },
+                    locationState = locationState,
+                    hasLocationPermission = hasLocationPermission,
+                    onRequestPermission = onRequestLocationPermission,
+                    onRefreshLocation = onRefreshLocation,
+                    categoriaSeleccionada = categoriaSeleccionada,
+                    categorias = viewModel.categorias,
+                    onCategoriaClick = { viewModel.setCategoria(it) },
+                    uiState = uiState,
+                    displayedProducts = displayedProducts,
+                    carritoUiState = carritoUiState,
+                    onAddToCart = onAddProductToCart,
+                    onProductClick = onProductClick,
+                    onCartClick = onCartClick
+                )
+
+                BottomOption.ACCOUNT -> AccountScreen(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    email = uiState.email
+                )
+
+                BottomOption.CATEGORIES -> PlaceholderContent(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    title = "Categorías",
+                    description = "Explora todas las categorías disponibles en tu próxima visita."
+                )
+
+                BottomOption.ORDERS -> PlaceholderContent(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    title = "Compras",
+                    description = "Aquí verás el historial de tus pedidos pronto."
+                )
+
+                BottomOption.LOGOUT -> PlaceholderContent(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    title = "Cerrando sesión",
+                    description = "Estamos finalizando tu sesión de forma segura..."
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun HomeContent(
+    modifier: Modifier,
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit,
+    showSuggestions: Boolean,
+    suggestions: List<Producto>,
+    onSuggestionSelected: (Producto) -> Unit,
+    locationState: LocationUiState,
+    hasLocationPermission: Boolean,
+    onRequestPermission: () -> Unit,
+    onRefreshLocation: () -> Unit,
+    categoriaSeleccionada: String,
+    categorias: List<String>,
+    onCategoriaClick: (String) -> Unit,
+    uiState: PrincipalUiState,
+    displayedProducts: List<Producto>,
+    carritoUiState: CarritoUiState,
+    onAddToCart: (Producto) -> Unit,
+    onProductClick: (Producto) -> Unit,
+    onCartClick: () -> Unit
+) {
+    LazyColumn(
+        modifier = modifier
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(bottom = 32.dp, top = 24.dp)
+    ) {
+        item {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                item {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = onSearchQueryChange,
+                        modifier = Modifier.weight(1f),
+                        placeholder = { Text("Buscar productos o categorías") },
+                        singleLine = true,
+                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar") },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = BrandAccent,
+                            unfocusedBorderColor = BrandAccent.copy(alpha = 0.6f),
+                            focusedTextColor = BrandAccent,
+                            unfocusedTextColor = BrandAccent,
+                            cursorColor = BrandAccent,
+                            focusedLeadingIconColor = BrandAccent,
+                            unfocusedLeadingIconColor = BrandAccent.copy(alpha = 0.8f),
+                            unfocusedPlaceholderColor = BrandAccent.copy(alpha = 0.7f),
+                            focusedPlaceholderColor = BrandAccent.copy(alpha = 0.7f)
+                        )
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(52.dp)
+                            .background(
+                                color = BrandAccent.copy(alpha = 0.2f),
+                                shape = CircleShape
+                            ),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        BadgedBox(
+                            badge = {
+                                if (carritoUiState.totalItems > 0) {
+                                    Badge { Text(text = carritoUiState.totalItems.toString()) }
+                                }
+                            }
                         ) {
-                            OutlinedTextField(
-                                value = searchQuery,
-                                onValueChange = {
-                                    searchQuery = it
-                                    suggestionsVisible = it.isNotBlank()
-                                },
-                                modifier = Modifier.weight(1f),
-                                placeholder = { Text("Buscar productos o categorías") },
-                                singleLine = true,
-                                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar") },
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = BrandAccent,
-                                    unfocusedBorderColor = BrandAccent.copy(alpha = 0.6f),
-                                    focusedTextColor = BrandAccent,
-                                    unfocusedTextColor = BrandAccent,
-                                    cursorColor = BrandAccent,
-                                    focusedLeadingIconColor = BrandAccent,
-                                    unfocusedLeadingIconColor = BrandAccent.copy(alpha = 0.8f),
-                                    unfocusedPlaceholderColor = BrandAccent.copy(alpha = 0.7f),
-                                    focusedPlaceholderColor = BrandAccent.copy(alpha = 0.7f)
+                            IconButton(onClick = onCartClick) {
+                                Icon(
+                                    imageVector = Icons.Default.ShoppingCart,
+                                    contentDescription = "Carrito de compras",
+                                    tint = BrandAccent
                                 )
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .size(52.dp)
-                                    .background(
-                                        color = BrandAccent.copy(alpha = 0.2f),
-                                        shape = CircleShape
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                BadgedBox(
-                                    badge = {
-                                        if (carritoUiState.totalItems > 0) {
-                                            Badge { Text(text = carritoUiState.totalItems.toString()) }
-                                        }
-                                    }
-                                ) {
-                                    IconButton(onClick = onCartClick) {
-                                        Icon(
-                                            imageVector = Icons.Default.ShoppingCart,
-                                            contentDescription = "Carrito de compras",
-                                            tint = BrandAccent
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                        AnimatedVisibility(
-                            visible = showSuggestions,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            SearchSuggestions(
-                                suggestions = suggestions,
-                                modifier = Modifier.fillMaxWidth()
-                            ) { producto ->
-                                searchQuery = producto.nombre
-                                suggestionsVisible = false
                             }
                         }
                     }
                 }
-
-                item {
-                    LocationCard(
-                        state = locationState,
-                        hasPermission = hasLocationPermission,
-                        onRequestPermission = {
-                            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-                        },
-                        onRefresh = {
-                            if (hasLocationPermission) {
-                                scope.launch {
-                                    requestAddress(onStateChange = { locationState = it }, context = context)
-                                }
-                            } else {
-                                permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-                            }
-                        }
+                AnimatedVisibility(
+                    visible = showSuggestions,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    SearchSuggestions(
+                        suggestions = suggestions,
+                        modifier = Modifier.fillMaxWidth(),
+                        onSuggestionSelected = onSuggestionSelected
                     )
-                }
-
-                item {
-                    CarouselSection()
-                }
-
-                item {
-                    Text(
-                        text = "Categorías",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            color = BrandAccent,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    )
-                }
-
-                item {
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(viewModel.categorias) { category ->
-                            CategoryChip(
-                                text = category,
-                                selected = category == categoriaSeleccionada,
-                                onClick = { viewModel.setCategoria(category) }
-                            )
-                        }
-                    }
-                }
-
-                item {
-                    Text(
-                        text = "Productos",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            color = BrandAccent,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    )
-                }
-
-                if (uiState.loading) {
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 24.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(color = BrandAccent)
-                        }
-                    }
-                }
-
-                uiState.error?.let { error ->
-                    item {
-                        Text(
-                            text = error,
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                }
-
-                if (!uiState.loading && displayedProducts.isEmpty()) {
-                    item {
-                        Text(
-                            text = "No se encontraron productos",
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                color = BrandAccent.copy(alpha = 0.8f)
-                            )
-                        )
-                    }
-                } else {
-                    items(displayedProducts, key = { it.codigo }) { product ->
-                        ProductCard(
-                            producto = product,
-                            onAddToCart = {
-                                carritoViewModel.agregarProducto(product)
-                                scope.launch {
-                                    snackbarHostState.currentSnackbarData?.dismiss()
-                                    snackbarHostState.showSnackbar(
-                                        message = "Producto agregado al carrito",
-                                        withDismissAction = false,
-                                        duration = SnackbarDuration.Short
-                                    )
-                                }
-                            },
-                            onClick = { onProductClick(product) }
-                        )
-                    }
                 }
             }
         }
+
+        item {
+            LocationCard(
+                state = locationState,
+                hasPermission = hasLocationPermission,
+                onRequestPermission = onRequestPermission,
+                onRefresh = onRefreshLocation
+            )
+        }
+
+        item {
+            CarouselSection()
+        }
+
+        item {
+            Text(
+                text = "Categorías",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    color = BrandAccent,
+                    fontWeight = FontWeight.SemiBold
+                )
+            )
+        }
+
+        item {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(categorias) { category ->
+                    CategoryChip(
+                        text = category,
+                        selected = category == categoriaSeleccionada,
+                        onClick = { onCategoriaClick(category) }
+                    )
+                }
+            }
+        }
+
+        item {
+            Text(
+                text = "Productos",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    color = BrandAccent,
+                    fontWeight = FontWeight.SemiBold
+                )
+            )
+        }
+
+        if (uiState.loading) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = BrandAccent)
+                }
+            }
+        }
+
+        uiState.error?.let { error ->
+            item {
+                Text(
+                    text = error,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+
+        if (!uiState.loading && displayedProducts.isEmpty()) {
+            item {
+                Text(
+                    text = "No se encontraron productos",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = BrandAccent.copy(alpha = 0.8f)
+                    )
+                )
+            }
+        } else {
+            items(displayedProducts, key = { it.codigo }) { product ->
+                ProductCard(
+                    producto = product,
+                    onAddToCart = { onAddToCart(product) },
+                    onClick = { onProductClick(product) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PlaceholderContent(
+    modifier: Modifier,
+    title: String,
+    description: String
+) {
+    Column(
+        modifier = modifier
+            .padding(horizontal = 24.dp)
+            .padding(top = 48.dp),
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(modifier = Modifier.height(48.dp))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.headlineSmall.copy(
+                color = BrandAccent,
+                fontWeight = FontWeight.SemiBold
+            )
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            text = description,
+            style = MaterialTheme.typography.bodyMedium.copy(
+                color = BrandAccent.copy(alpha = 0.85f)
+            ),
+            textAlign = TextAlign.Center
+        )
     }
 }
 
