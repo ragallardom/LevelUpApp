@@ -4,24 +4,31 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cl.duoc.levelupapp.model.Producto
 import cl.duoc.levelupapp.model.productosDemo
+import cl.duoc.levelupapp.repository.auth.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 data class PrincipalUiState(
-    val email: String? = "usuario@demo.com",
+    val email: String? = null,
     val loading: Boolean = false,
     val error: String? = null,
     val loggedOut: Boolean = false
 )
 
-class PrincipalViewModel : ViewModel() {
+class PrincipalViewModel(
+    private val authRepository: AuthRepository = AuthRepository()
+) : ViewModel() {
 
     private val _ui = MutableStateFlow(PrincipalUiState())
     val ui: StateFlow<PrincipalUiState> = _ui.asStateFlow()
 
     private val fuente: List<Producto> = productosDemo
+
+    init {
+        refreshSession()
+    }
 
     val categorias: List<String> = listOf("Todos") + fuente.map { it.categoria }.distinct()
 
@@ -55,10 +62,16 @@ class PrincipalViewModel : ViewModel() {
     }
 
     fun logout() {
-        _ui.value = _ui.value.copy(loading = true)
+        authRepository.logout()
+        _ui.value = _ui.value.copy(loading = true, email = null)
         viewModelScope.launch {
             _ui.value = _ui.value.copy(loading = false, loggedOut = true)
         }
+    }
+
+    fun refreshSession() {
+        val currentUser = authRepository.currentUser()
+        _ui.value = _ui.value.copy(email = currentUser?.email)
     }
 
     private fun aplicarFiltro() {
