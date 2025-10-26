@@ -229,11 +229,11 @@ fun PrincipalScreen(
         }
     }
 
-    val onRequestLocationPermission = {
+    val onRequestLocationPermission: () -> Unit = {
         permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
     }
 
-    val onRefreshLocation = {
+    val onRefreshLocation: () -> Unit = {
         if (hasLocationPermission) {
             scope.launch {
                 requestAddress(onStateChange = { locationState = it }, context = context)
