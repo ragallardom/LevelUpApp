@@ -100,11 +100,13 @@ class SqliteCarritoRepository(context: Context) : CarritoRepository {
             "${CarritoContract.CarritoEntry.COLUMN_CODIGO} = ?",
             arrayOf(codigo)
         )
+        Unit
     }
 
     override suspend fun clear() = withContext(Dispatchers.IO) {
         val db = dbHelper.writableDatabase
         db.delete(CarritoContract.CarritoEntry.TABLE_NAME, null, null)
+        Unit
     }
 
     private fun queryQuantity(db: SQLiteDatabase, codigo: String): Int {
