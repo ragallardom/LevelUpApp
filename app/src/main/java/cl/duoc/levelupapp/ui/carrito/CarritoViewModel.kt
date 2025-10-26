@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import cl.duoc.levelupapp.model.Producto
 import cl.duoc.levelupapp.model.productosDemo
+import cl.duoc.levelupapp.repository.auth.AuthRepository
 import cl.duoc.levelupapp.repository.carrito.CarritoEntity
 import cl.duoc.levelupapp.repository.carrito.CarritoRepository
 import cl.duoc.levelupapp.repository.carrito.SqliteCarritoRepository
@@ -139,11 +140,15 @@ class CarritoViewModel(
     companion object {
         fun provideFactory(context: Context): ViewModelProvider.Factory {
             val appContext = context.applicationContext
+            val authRepository = AuthRepository()
             return object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
                     if (modelClass.isAssignableFrom(CarritoViewModel::class.java)) {
-                        return CarritoViewModel(SqliteCarritoRepository(appContext)) as T
+                        val repository = SqliteCarritoRepository(appContext) {
+                            authRepository.currentUser()?.uid
+                        }
+                        return CarritoViewModel(repository) as T
                     }
                     throw IllegalArgumentException("Unknown ViewModel class")
                 }
