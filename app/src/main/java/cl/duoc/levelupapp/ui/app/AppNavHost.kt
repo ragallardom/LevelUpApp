@@ -25,7 +25,10 @@ import cl.duoc.levelupapp.ui.register.RegistrarseScreen
 fun AppNavHost() {
     val nav = rememberNavController()
     val activity = LocalContext.current as ComponentActivity
-    val carritoViewModel: CarritoViewModel = viewModel(activity)
+    val carritoViewModel: CarritoViewModel = viewModel(
+        activity,
+        factory = CarritoViewModel.provideFactory(activity.applicationContext)
+    )
 
     NavHost(navController = nav, startDestination = Route.HomeRoot.path) {
 

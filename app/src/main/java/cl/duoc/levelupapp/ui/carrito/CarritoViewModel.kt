@@ -1,10 +1,18 @@
 package cl.duoc.levelupapp.ui.carrito
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import cl.duoc.levelupapp.model.Producto
+import cl.duoc.levelupapp.model.productosDemo
+import cl.duoc.levelupapp.repository.carrito.CarritoEntity
+import cl.duoc.levelupapp.repository.carrito.CarritoRepository
+import cl.duoc.levelupapp.repository.carrito.SqliteCarritoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -26,55 +34,121 @@ data class CarritoUiState(
         get() = formatCurrency(totalAmount)
 }
 
-class CarritoViewModel : ViewModel() {
+class CarritoViewModel(
+    private val repository: CarritoRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CarritoUiState())
     val uiState: StateFlow<CarritoUiState> = _uiState.asStateFlow()
 
-    fun agregarProducto(producto: Producto) {
-        val itemsActuales = _uiState.value.items.toMutableList()
-        val indice = itemsActuales.indexOfFirst { it.producto.codigo == producto.codigo }
-        if (indice >= 0) {
-            val existente = itemsActuales[indice]
-            itemsActuales[indice] = existente.copy(cantidad = existente.cantidad + 1)
-        } else {
-            itemsActuales.add(CarritoItem(producto, cantidad = 1))
+    init {
+        viewModelScope.launch {
+            loadPersistedItems()
         }
-        _uiState.value = CarritoUiState(items = itemsActuales)
+    }
+
+    fun agregarProducto(producto: Producto) {
+        viewModelScope.launch {
+            repository.addOrIncrement(producto.codigo)
+            actualizarEstado { itemsActuales ->
+                val mutableItems = itemsActuales.toMutableList()
+                val indice = mutableItems.indexOfFirst { it.producto.codigo == producto.codigo }
+                if (indice >= 0) {
+                    val existente = mutableItems[indice]
+                    mutableItems[indice] = existente.copy(cantidad = existente.cantidad + 1)
+                } else {
+                    mutableItems.add(CarritoItem(producto, cantidad = 1))
+                }
+                mutableItems
+            }
+        }
     }
 
     fun incrementarCantidad(codigoProducto: String) {
-        val itemsActuales = _uiState.value.items.toMutableList()
-        val indice = itemsActuales.indexOfFirst { it.producto.codigo == codigoProducto }
-        if (indice >= 0) {
-            val item = itemsActuales[indice]
-            itemsActuales[indice] = item.copy(cantidad = item.cantidad + 1)
-            _uiState.value = CarritoUiState(items = itemsActuales)
+        val itemsActuales = _uiState.value.items
+        val item = itemsActuales.firstOrNull { it.producto.codigo == codigoProducto } ?: return
+        val nuevaCantidad = item.cantidad + 1
+        viewModelScope.launch {
+            repository.updateQuantity(codigoProducto, nuevaCantidad)
+            actualizarEstado { items ->
+                items.map { current ->
+                    if (current.producto.codigo == codigoProducto) {
+                        current.copy(cantidad = nuevaCantidad)
+                    } else {
+                        current
+                    }
+                }
+            }
         }
     }
 
     fun decrementarCantidad(codigoProducto: String) {
-        val itemsActuales = _uiState.value.items.toMutableList()
-        val indice = itemsActuales.indexOfFirst { it.producto.codigo == codigoProducto }
-        if (indice >= 0) {
-            val item = itemsActuales[indice]
-            val nuevaCantidad = item.cantidad - 1
-            if (nuevaCantidad > 0) {
-                itemsActuales[indice] = item.copy(cantidad = nuevaCantidad)
-            } else {
-                itemsActuales.removeAt(indice)
+        val itemsActuales = _uiState.value.items
+        val item = itemsActuales.firstOrNull { it.producto.codigo == codigoProducto } ?: return
+        val nuevaCantidad = item.cantidad - 1
+        viewModelScope.launch {
+            repository.updateQuantity(codigoProducto, nuevaCantidad)
+            actualizarEstado { items ->
+                if (nuevaCantidad > 0) {
+                    items.map { current ->
+                        if (current.producto.codigo == codigoProducto) {
+                            current.copy(cantidad = nuevaCantidad)
+                        } else {
+                            current
+                        }
+                    }
+                } else {
+                    items.filterNot { it.producto.codigo == codigoProducto }
+                }
             }
-            _uiState.value = CarritoUiState(items = itemsActuales)
         }
     }
 
     fun quitarProducto(codigoProducto: String) {
-        val itemsActuales = _uiState.value.items.filterNot { it.producto.codigo == codigoProducto }
-        _uiState.value = CarritoUiState(items = itemsActuales)
+        viewModelScope.launch {
+            repository.removeItem(codigoProducto)
+            actualizarEstado { items ->
+                items.filterNot { it.producto.codigo == codigoProducto }
+            }
+        }
     }
 
     fun limpiarCarrito() {
-        _uiState.value = CarritoUiState()
+        viewModelScope.launch {
+            repository.clear()
+            _uiState.value = CarritoUiState()
+        }
+    }
+
+    private suspend fun loadPersistedItems() {
+        val almacenados = repository.getItems()
+        _uiState.value = CarritoUiState(items = mapearAUi(almacenados))
+    }
+
+    private fun mapearAUi(entities: List<CarritoEntity>): List<CarritoItem> {
+        return entities.mapNotNull { entity ->
+            val producto = productosDemo.find { it.codigo == entity.codigo }
+            producto?.let { CarritoItem(it, entity.cantidad) }
+        }
+    }
+
+    private fun actualizarEstado(transform: (List<CarritoItem>) -> List<CarritoItem>) {
+        _uiState.value = CarritoUiState(items = transform(_uiState.value.items))
+    }
+
+    companion object {
+        fun provideFactory(context: Context): ViewModelProvider.Factory {
+            val appContext = context.applicationContext
+            return object : ViewModelProvider.Factory {
+                @Suppress("UNCHECKED_CAST")
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                    if (modelClass.isAssignableFrom(CarritoViewModel::class.java)) {
+                        return CarritoViewModel(SqliteCarritoRepository(appContext)) as T
+                    }
+                    throw IllegalArgumentException("Unknown ViewModel class")
+                }
+            }
+        }
     }
 }
 

@@ -94,8 +94,11 @@ import androidx.annotation.DrawableRes
 import cl.duoc.levelupapp.R
 import cl.duoc.levelupapp.ui.carrito.CarritoViewModel
 import cl.duoc.levelupapp.model.Producto
+import cl.duoc.levelupapp.model.productosDemo
 import cl.duoc.levelupapp.ui.theme.BrandColors
 import cl.duoc.levelupapp.ui.theme.LevelUppAppTheme
+import cl.duoc.levelupapp.repository.carrito.CarritoEntity
+import cl.duoc.levelupapp.repository.carrito.InMemoryCarritoRepository
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
@@ -140,7 +143,7 @@ fun PrincipalScreen(
     onCartClick: () -> Unit = {},
     onProductClick: (Producto) -> Unit = {},
     viewModel: PrincipalViewModel = viewModel(),
-    carritoViewModel: CarritoViewModel = viewModel()
+    carritoViewModel: CarritoViewModel
 ) {
     val context = LocalContext.current
     var searchQuery by remember { mutableStateOf("") }
@@ -838,12 +841,21 @@ private fun LocationCard(
 @Composable
 private fun PrincipalScreenPreview() {
     LevelUppAppTheme {
+        val previewCarritoViewModel = remember {
+            CarritoViewModel(
+                InMemoryCarritoRepository(
+                    initialItems = listOf(
+                        CarritoEntity(productosDemo.first().codigo, 2)
+                    )
+                )
+            )
+        }
         PrincipalScreen(
             onLogout = {},
             onCartClick = {},
             onProductClick = {},
             viewModel = PrincipalViewModel(),
-            carritoViewModel = CarritoViewModel()
+            carritoViewModel = previewCarritoViewModel
         )
     }
 }
