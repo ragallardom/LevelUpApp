@@ -1,129 +1,122 @@
 package cl.duoc.levelupapp.ui.principal.components
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import cl.duoc.levelupapp.R
 import cl.duoc.levelupapp.model.Producto
+import cl.duoc.levelupapp.ui.producto.toImageBitmap
+import cl.duoc.levelupapp.ui.theme.BrandColors
+
+
+private val BrandDeepBlue = BrandColors.DeepBlue
+private val BrandAccent = BrandColors.Accent
 
 @Composable
-fun UiProductosCard(
+fun ProductCard(
     producto: Producto,
-    onAgregar: (Producto) -> Unit,
-    modifier: Modifier = Modifier
+    onAddToCart: () -> Unit,
+    onClick: () -> Unit
 ) {
-    var agregado by remember { mutableStateOf(false) }
+    // Decodificamos la imagen
+    val imageBitmap = remember(producto.imageBase64) {
+        producto.imageBase64?.toImageBitmap()
+    }
 
     Card(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 300.dp),
-        shape = MaterialTheme.shapes.medium,
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+            .clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(
+            containerColor = BrandDeepBlue.copy(alpha = 0.7f)
+        ),
+        shape = RoundedCornerShape(16.dp)
     ) {
-        Column(
+        Row(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                painter = painterResource(id = producto.imagenRes),
-                contentDescription = producto.nombre,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(140.dp),
-                contentScale = ContentScale.Crop
-            )
+            // IMAGEN CORREGIDA
+            if (imageBitmap != null) {
+                Image(
+                    bitmap = imageBitmap,
+                    contentDescription = producto.nombre,
+                    modifier = Modifier
+                        .size(72.dp)
+                        .clip(RoundedCornerShape(12.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                // Placeholder (logo) si no hay imagen
+                Box(
+                    modifier = Modifier
+                        .size(72.dp)
+                        .background(Color.Gray.copy(alpha = 0.3f), RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.logo), // Asegúrate de tener este recurso
+                        contentDescription = null,
+                        tint = Color.White
+                    )
+                }
+            }
 
-            Spacer(Modifier.height(12.dp))
-
-            Text(
-                text = producto.nombre,
-                style = MaterialTheme.typography.titleMedium,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Text(
-                text = producto.categoria,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary
-            )
-
-            Spacer(Modifier.height(8.dp))
-
-            Text(
-                text = "Valor: $${producto.precio} CLP",
-                style = MaterialTheme.typography.bodyMedium
-            )
-
-            Spacer(Modifier.weight(1f))
-
-            val interactionSource = remember { MutableInteractionSource() }
-            val presionado by interactionSource.collectIsPressedAsState()
-
-            val escala by animateFloatAsState(
-                targetValue = if (presionado) 0.95f else 1f,
-                animationSpec = tween(durationMillis = 100),
-                label = "scaleAnim"
-            )
-
-            val colorFondo by animateColorAsState(
-                targetValue = if (agregado) {
-                    MaterialTheme.colorScheme.secondary
-                } else {
-                    MaterialTheme.colorScheme.primary
-                },
-                animationSpec = tween(durationMillis = 250),
-                label = "colorAnim"
-            )
-
-            Button(
-                onClick = {
-                    agregado = !agregado
-                    onAgregar(producto)
-                },
-                interactionSource = interactionSource,
-                colors = ButtonDefaults.buttonColors(containerColor = colorFondo),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .graphicsLayer {
-                        scaleX = escala
-                        scaleY = escala
-                    }
-                    .animateContentSize()
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
-                    text = if (agregado) "Agregado" else "Agregar al carrito",
-                    style = MaterialTheme.typography.labelLarge
+                    text = producto.nombre,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        color = BrandAccent,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 )
+                Text(
+                    text = "${producto.categoria} • ${producto.codigo}",
+                    style = MaterialTheme.typography.bodyMedium.copy(color = BrandAccent.copy(alpha = 0.8f))
+                )
+                Text(
+                    text = "$${producto.precio} CLP",
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        color = BrandAccent,
+                        fontWeight = FontWeight.Medium
+                    )
+                )
+            }
+
+            FilledTonalButton(onClick = onAddToCart) {
+                Text(text = "Agregar")
             }
         }
     }

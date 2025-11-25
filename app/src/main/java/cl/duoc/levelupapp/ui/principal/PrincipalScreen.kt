@@ -4,83 +4,41 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
 import android.os.Build
+import android.util.Base64
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.DrawableRes
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material.icons.filled.Category
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.ShoppingBag
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -91,12 +49,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.annotation.DrawableRes
-import androidx.compose.material3.DividerDefaults
-import androidx.compose.material3.HorizontalDivider
 import cl.duoc.levelupapp.R
 import cl.duoc.levelupapp.model.Producto
-import cl.duoc.levelupapp.model.productosDemo
 import cl.duoc.levelupapp.repository.carrito.CarritoEntity
 import cl.duoc.levelupapp.repository.carrito.InMemoryCarritoRepository
 import cl.duoc.levelupapp.ui.account.AccountScreen
@@ -104,16 +58,17 @@ import cl.duoc.levelupapp.ui.carrito.CarritoUiState
 import cl.duoc.levelupapp.ui.carrito.CarritoViewModel
 import cl.duoc.levelupapp.ui.theme.BrandColors
 import cl.duoc.levelupapp.ui.theme.LevelUppAppTheme
+import cl.duoc.levelupapp.ui.producto.ProductsViewModel
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
-import java.io.IOException
-import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import java.io.IOException
+import java.util.Locale
 import kotlin.coroutines.resume
 
 private val BrandShadow = BrandColors.Shadow
@@ -148,7 +103,8 @@ fun PrincipalScreen(
     onCartClick: () -> Unit = {},
     onProductClick: (Producto) -> Unit = {},
     viewModel: PrincipalViewModel = viewModel(),
-    carritoViewModel: CarritoViewModel
+    carritoViewModel: CarritoViewModel,
+    productsViewModel: ProductsViewModel
 ) {
     val context = LocalContext.current
     var searchQuery by remember { mutableStateOf("") }
@@ -164,20 +120,42 @@ fun PrincipalScreen(
     }
     var suggestionsVisible by remember { mutableStateOf(false) }
 
+    // --- 1. VARIABLES DE ESTADO (Solo una vez) ---
     val uiState by viewModel.ui.collectAsState()
     val categoriaSeleccionada by viewModel.categoriaSel.collectAsState()
-    val productos by viewModel.productosFiltrados.collectAsState()
+
+    // Datos reales desde Oracle
+    val productosReales by productsViewModel.productos
+    val isLoadingProducts by productsViewModel.isLoading
+
+    // Calcular categorías dinámicamente
+    val categoriasDinamicas = remember(productosReales) {
+        if (productosReales.isEmpty()) {
+            listOf("Todos")
+        } else {
+            // mapNotNull evita errores si alguna categoría viene nula
+            listOf("Todos") + productosReales.mapNotNull { it.categoria }.distinct().sorted()
+        }
+    }
+
     val scope = rememberCoroutineScope()
     val carritoUiState by carritoViewModel.uiState.collectAsState()
 
+    // --- 2. EFECTOS ---
     LaunchedEffect(Unit) {
         viewModel.refreshSession()
-        viewModel.cargarProductos()
     }
 
     LaunchedEffect(uiState.loggedOut) {
         if (uiState.loggedOut) {
             onLogout()
+        }
+    }
+
+    // Sincronizar catálogo del carrito cuando lleguen productos
+    LaunchedEffect(productosReales) {
+        if (productosReales.isNotEmpty()) {
+            carritoViewModel.actualizarCatalogo(productosReales)
         }
     }
 
@@ -200,20 +178,32 @@ fun PrincipalScreen(
         }
     }
 
+    // --- 3. LÓGICA DE FILTRADO (Protegida contra nulos) ---
     val trimmedQuery = searchQuery.trim()
     val normalizedQuery = trimmedQuery.lowercase(Locale.getDefault())
-    val filteredProducts = if (trimmedQuery.isBlank()) {
-        productos
-    } else {
-        productos.filter { producto ->
-            val nombre = producto.nombre.lowercase(Locale.getDefault())
-            val categoria = producto.categoria.lowercase(Locale.getDefault())
-            val codigo = producto.codigo.lowercase(Locale.getDefault())
-            nombre.contains(normalizedQuery) ||
-                categoria.contains(normalizedQuery) ||
-                codigo.contains(normalizedQuery)
+
+    val filteredProducts = remember(productosReales, normalizedQuery, categoriaSeleccionada) {
+        // Filtrado por categoría seguro
+        val byCategory = if (categoriaSeleccionada == "Todos") {
+            productosReales
+        } else {
+            productosReales.filter {
+                it.categoria.equals(categoriaSeleccionada, ignoreCase = true)
+            }
+        }
+
+        // Filtrado por búsqueda
+        if (trimmedQuery.isBlank()) {
+            byCategory
+        } else {
+            byCategory.filter { producto ->
+                val nombre = producto.nombre.lowercase(Locale.getDefault())
+                val codigo = producto.codigo.lowercase(Locale.getDefault())
+                nombre.contains(normalizedQuery) || codigo.contains(normalizedQuery)
+            }
         }
     }
+
     val suggestions = if (trimmedQuery.isNotBlank()) filteredProducts.take(5) else emptyList()
     val displayedProducts = filteredProducts
     val showSuggestions = suggestionsVisible && suggestions.isNotEmpty()
@@ -381,14 +371,15 @@ fun PrincipalScreen(
                     onRequestPermission = onRequestLocationPermission,
                     onRefreshLocation = onRefreshLocation,
                     categoriaSeleccionada = categoriaSeleccionada,
-                    categorias = viewModel.categorias,
+                    categorias = categoriasDinamicas,
                     onCategoriaClick = { viewModel.setCategoria(it) },
                     uiState = uiState,
                     displayedProducts = displayedProducts,
                     carritoUiState = carritoUiState,
                     onAddToCart = onAddProductToCart,
                     onProductClick = onProductClick,
-                    onCartClick = onCartClick
+                    onCartClick = onCartClick,
+                    isLoading = isLoadingProducts
                 )
 
                 BottomOption.ACCOUNT -> AccountScreen(
@@ -446,7 +437,8 @@ private fun HomeContent(
     carritoUiState: CarritoUiState,
     onAddToCart: (Producto) -> Unit,
     onProductClick: (Producto) -> Unit,
-    onCartClick: () -> Unit
+    onCartClick: () -> Unit,
+    isLoading: Boolean
 ) {
     LazyColumn(
         modifier = modifier
@@ -467,7 +459,7 @@ private fun HomeContent(
                         value = searchQuery,
                         onValueChange = onSearchQueryChange,
                         modifier = Modifier.weight(1f),
-                        placeholder = { Text("Buscar productos o categorías") },
+                        placeholder = { Text("Buscar productos...") },
                         singleLine = true,
                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar") },
                         colors = OutlinedTextFieldDefaults.colors(
@@ -568,7 +560,7 @@ private fun HomeContent(
             )
         }
 
-        if (uiState.loading) {
+        if (isLoading) {
             item {
                 Box(
                     modifier = Modifier
@@ -591,7 +583,7 @@ private fun HomeContent(
             }
         }
 
-        if (!uiState.loading && displayedProducts.isEmpty()) {
+        if (!isLoading && displayedProducts.isEmpty()) {
             item {
                 Text(
                     text = "No se encontraron productos",
@@ -601,12 +593,166 @@ private fun HomeContent(
                 )
             }
         } else {
-            items(displayedProducts, key = { it.codigo }) { product ->
+            items(displayedProducts, key = { it.id }) { product ->
                 ProductCard(
                     producto = product,
                     onAddToCart = { onAddToCart(product) },
                     onClick = { onProductClick(product) }
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun LocationCard(
+    state: LocationUiState,
+    hasPermission: Boolean,
+    onRequestPermission: () -> Unit,
+    onRefresh: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 120.dp),
+        colors = CardDefaults.cardColors(containerColor = BrandDeepBlue.copy(alpha = 0.7f)),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = "Tu ubicación",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    color = BrandAccent,
+                    fontWeight = FontWeight.SemiBold
+                )
+            )
+            when (state) {
+                LocationUiState.Idle -> {
+                    Text(
+                        text = "Comparte tu ubicación para obtener tu dirección.",
+                        style = MaterialTheme.typography.bodyMedium.copy(color = BrandAccent.copy(alpha = 0.8f))
+                    )
+                }
+                LocationUiState.Loading -> {
+                    Text(
+                        text = "Obteniendo dirección...",
+                        style = MaterialTheme.typography.bodyMedium.copy(color = BrandAccent.copy(alpha = 0.8f))
+                    )
+                }
+                is LocationUiState.Success -> {
+                    Text(
+                        text = state.address,
+                        style = MaterialTheme.typography.bodyMedium.copy(color = BrandAccent)
+                    )
+                }
+                is LocationUiState.Error -> {
+                    Text(
+                        text = state.message,
+                        style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.error)
+                    )
+                }
+            }
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                if (!hasPermission) {
+                    TextButton(onClick = onRequestPermission) {
+                        Text("Permitir ubicación")
+                    }
+                }
+                TextButton(onClick = onRefresh) {
+                    Text("Actualizar")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProductCard(
+    producto: Producto,
+    onAddToCart: () -> Unit,
+    onClick: () -> Unit
+) {
+    // Decodificamos la imagen de Base64
+    val imageBitmap = remember(producto.imageBase64) {
+        producto.imageBase64?.toImageBitmap()
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(
+            containerColor = BrandDeepBlue.copy(alpha = 0.7f)
+        ),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Bloque de imagen condicional
+            if (imageBitmap != null) {
+                Image(
+                    bitmap = imageBitmap,
+                    contentDescription = producto.nombre,
+                    modifier = Modifier
+                        .size(72.dp)
+                        .clip(RoundedCornerShape(12.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                // Placeholder si no hay imagen
+                Box(
+                    modifier = Modifier
+                        .size(72.dp)
+                        .background(Color.Gray.copy(alpha = 0.3f), RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.logo),
+                        contentDescription = null,
+                        tint = Color.White
+                    )
+                }
+            }
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = producto.nombre,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        color = BrandAccent,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                )
+                Text(
+                    text = "${producto.categoria} • ${producto.codigo}",
+                    style = MaterialTheme.typography.bodyMedium.copy(color = BrandAccent.copy(alpha = 0.8f))
+                )
+                Text(
+                    text = "$${producto.precio}",
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        color = BrandAccent,
+                        fontWeight = FontWeight.Medium
+                    )
+                )
+            }
+
+            FilledTonalButton(onClick = onAddToCart) {
+                Text(text = "Agregar")
             }
         }
     }
@@ -841,138 +987,7 @@ private fun SearchSuggestionItem(
     }
 }
 
-@Composable
-private fun ProductCard(
-    producto: Producto,
-    onAddToCart: () -> Unit,
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(
-            containerColor = BrandDeepBlue.copy(alpha = 0.7f)
-        ),
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Image(
-                painter = painterResource(id = producto.imagenRes),
-                contentDescription = producto.nombre,
-                modifier = Modifier
-                    .size(72.dp)
-                    .clip(RoundedCornerShape(12.dp)),
-                contentScale = ContentScale.Crop
-            )
-
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    text = producto.nombre,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        color = BrandAccent,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                )
-                Text(
-                    text = "${producto.categoria} • ${producto.codigo}",
-                    style = MaterialTheme.typography.bodyMedium.copy(color = BrandAccent.copy(alpha = 0.8f))
-                )
-                Text(
-                    text = "$${producto.precio} CLP",
-                    style = MaterialTheme.typography.titleSmall.copy(
-                        color = BrandAccent,
-                        fontWeight = FontWeight.Medium
-                    )
-                )
-            }
-
-            FilledTonalButton(onClick = onAddToCart) {
-                Text(text = "Agregar")
-            }
-        }
-    }
-}
-
-@Composable
-private fun LocationCard(
-    state: LocationUiState,
-    hasPermission: Boolean,
-    onRequestPermission: () -> Unit,
-    onRefresh: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 120.dp),
-        colors = CardDefaults.cardColors(containerColor = BrandDeepBlue.copy(alpha = 0.7f)),
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                text = "Tu ubicación",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    color = BrandAccent,
-                    fontWeight = FontWeight.SemiBold
-                )
-            )
-            when (state) {
-                LocationUiState.Idle -> {
-                    Text(
-                        text = "Comparte tu ubicación para obtener tu dirección.",
-                        style = MaterialTheme.typography.bodyMedium.copy(color = BrandAccent.copy(alpha = 0.8f))
-                    )
-                }
-                LocationUiState.Loading -> {
-                    Text(
-                        text = "Obteniendo dirección...",
-                        style = MaterialTheme.typography.bodyMedium.copy(color = BrandAccent.copy(alpha = 0.8f))
-                    )
-                }
-                is LocationUiState.Success -> {
-                    Text(
-                        text = state.address,
-                        style = MaterialTheme.typography.bodyMedium.copy(color = BrandAccent)
-                    )
-                }
-                is LocationUiState.Error -> {
-                    Text(
-                        text = state.message,
-                        style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.error)
-                    )
-                }
-            }
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                if (!hasPermission) {
-                    TextButton(onClick = onRequestPermission) {
-                        Text("Permitir ubicación")
-                    }
-                }
-                TextButton(onClick = onRefresh) {
-                    Text("Actualizar")
-                }
-            }
-        }
-    }
-}
-
+@SuppressLint("ViewModelConstructorInComposable")
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true)
 @Composable
@@ -981,21 +996,24 @@ private fun PrincipalScreenPreview() {
         val previewCarritoViewModel = remember {
             CarritoViewModel(
                 InMemoryCarritoRepository(
-                    initialItems = listOf(
-                        CarritoEntity(productosDemo.first().codigo, 2)
-                    )
+                    // Aquí sí usamos demo para la preview, no importa
+                    initialItems = listOf()
                 )
             )
         }
+
         PrincipalScreen(
             onLogout = {},
             onCartClick = {},
             onProductClick = {},
             viewModel = PrincipalViewModel(),
-            carritoViewModel = previewCarritoViewModel
+            carritoViewModel = previewCarritoViewModel,
+            productsViewModel = ProductsViewModel()
         )
     }
 }
+
+// --- FUNCIONES DE UTILERÍA ---
 
 private suspend fun requestAddress(
     onStateChange: (LocationUiState) -> Unit,
@@ -1087,5 +1105,15 @@ private suspend fun resolveAddress(context: Context, location: Location): String
         } catch (_: IOException) {
             null
         }
+    }
+}
+
+
+fun String.toImageBitmap(): ImageBitmap? {
+    return try {
+        val decodedBytes = Base64.decode(this, Base64.DEFAULT)
+        BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)?.asImageBitmap()
+    } catch (e: Exception) {
+        null
     }
 }

@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cl.duoc.levelupapp.model.User
 import cl.duoc.levelupapp.repository.auth.AuthRepository
+import cl.duoc.levelupapp.network.RetrofitClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -41,6 +42,7 @@ class LoginViewModel(
 
     fun submit() {
         val (emailError, passwordError) = validar()
+
         if (emailError != null || passwordError != null) {
             _ui.update { it.copy(emailError = emailError, passwordError = passwordError) }
             return
@@ -59,6 +61,34 @@ class LoginViewModel(
             _ui.update {
                 if (user != null) it.copy(loading = false, loggedIn = true, user = user, message = "Ingreso exitoso")
                 else it.copy(loading = false, error = "Error al iniciar sesión")
+            }
+        }
+    }
+    private fun sincronizarConBackend() {
+        viewModelScope.launch {
+            try {
+
+                val response = RetrofitClient.api.syncUser()
+
+                if (response.isSuccessful) {
+                    // 3. Todo listo, entramos a la app
+                    _ui.value = _ui.value.copy(
+                        loading = false,
+                        loggedIn = true,
+                        message = "¡Bienvenido de vuelta!"
+                    )
+                } else {
+
+                    _ui.value = _ui.value.copy(
+                        loading = false,
+                        error = "Error al sincronizar perfil (Code: ${response.code()})"
+                    )
+                }
+            } catch (e: Exception) {
+                _ui.value = _ui.value.copy(
+                    loading = false,
+                    error = "Error de conexión con el servidor: ${e.message}"
+                )
             }
         }
     }

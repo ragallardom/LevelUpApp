@@ -77,7 +77,7 @@ fun AnimatedLogo(
                 rotationZ = tilt
                 alpha = enterAlpha
             }
-            .then(Modifier) // placeholder para extender si luego lo haces clickeable
+            .then(Modifier)
         ,
     )
 }

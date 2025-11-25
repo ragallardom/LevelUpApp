@@ -1,7 +1,11 @@
 package cl.duoc.levelupapp.ui.carrito.components
 
+import android.graphics.BitmapFactory
+import android.util.Base64
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,13 +27,18 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import cl.duoc.levelupapp.R
 import cl.duoc.levelupapp.model.Producto
 import cl.duoc.levelupapp.ui.carrito.CarritoItem
 import cl.duoc.levelupapp.ui.theme.BrandColors
@@ -61,6 +70,7 @@ fun UiCarritoCard(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Llamamos a la función corregida para la imagen
             ProductoImagen(producto = item.producto)
 
             Column(
@@ -73,7 +83,7 @@ fun UiCarritoCard(
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
                 )
                 Text(
-                    text = "$${item.producto.precio} CLP",
+                    text = "$${item.producto.precio}",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = BrandAccent
@@ -129,12 +139,43 @@ fun UiCarritoCard(
 
 @Composable
 private fun ProductoImagen(producto: Producto) {
-    Image(
-        painter = painterResource(id = producto.imagenRes),
-        contentDescription = producto.nombre,
-        modifier = Modifier
-            .size(64.dp)
-            .clip(RoundedCornerShape(12.dp)),
-        contentScale = ContentScale.Crop
-    )
+    // 1. Decodificamos la imagen aquí mismo
+    val imageBitmap = remember(producto.imageBase64) {
+        producto.imageBase64?.toImageBitmap()
+    }
+
+    // 2. Si existe la imagen, la mostramos. Si no, mostramos un cuadro gris con el logo.
+    if (imageBitmap != null) {
+        Image(
+            bitmap = imageBitmap,
+            contentDescription = producto.nombre,
+            modifier = Modifier
+                .size(64.dp)
+                .clip(RoundedCornerShape(12.dp)),
+            contentScale = ContentScale.Crop
+        )
+    } else {
+        Box(
+            modifier = Modifier
+                .size(64.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color.Gray.copy(alpha = 0.3f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.logo),
+                contentDescription = null,
+                tint = Color.White
+            )
+        }
+    }
+}
+
+private fun String.toImageBitmap(): ImageBitmap? {
+    return try {
+        val decodedBytes = Base64.decode(this, Base64.DEFAULT)
+        BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)?.asImageBitmap()
+    } catch (e: Exception) {
+        null
+    }
 }

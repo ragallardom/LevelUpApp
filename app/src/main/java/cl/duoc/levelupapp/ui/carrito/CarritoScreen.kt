@@ -198,7 +198,7 @@ private fun SummarySection(
                     color = BrandOnMuted
                 )
                 Text(
-                    text = "Total a pagar: $$formattedTotal CLP",
+                    text = "Total a pagar: $formattedTotal ",
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.SemiBold
                     ),

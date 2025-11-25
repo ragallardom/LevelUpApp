@@ -1,8 +1,10 @@
 package cl.duoc.levelupapp.ui.app
 
+import android.annotation.SuppressLint
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue // Importar para usar 'by' si fuera necesario, aunque aquí accedemos al value directo
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
@@ -16,19 +18,26 @@ import cl.duoc.levelupapp.ui.home.HomeScreen
 import cl.duoc.levelupapp.ui.login.LoginScreen
 import cl.duoc.levelupapp.ui.principal.PrincipalScreen
 import cl.duoc.levelupapp.ui.producto.ProductDetailScreen
-import cl.duoc.levelupapp.model.productosDemo
 import cl.duoc.levelupapp.ui.recover.RecuperarPasswordScreen
 import cl.duoc.levelupapp.ui.register.RegistrarseScreen
+import cl.duoc.levelupapp.ui.producto.ProductsViewModel // <--- IMPORTANTE
 
+@SuppressLint("ContextCastToActivity")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavHost() {
     val nav = rememberNavController()
     val activity = LocalContext.current as ComponentActivity
+
+    // 1. ViewModel del Carrito (Global)
     val carritoViewModel: CarritoViewModel = viewModel(
         activity,
         factory = CarritoViewModel.provideFactory(activity.applicationContext)
     )
+
+    // 2. ViewModel de Productos (Global para el NavHost)
+    // Este se encargará de mantener la lista de productos descargada de Oracle
+    val productsViewModel: ProductsViewModel = viewModel()
 
     NavHost(navController = nav, startDestination = Route.HomeRoot.path) {
 
@@ -44,6 +53,8 @@ fun AppNavHost() {
             LoginScreen(
                 onBack = { nav.popBackStack() },
                 onLoginSuccess = {
+                    // Al loguearse, recargamos productos por si acaso
+                    productsViewModel.cargarProductos()
                     nav.navigate(Route.Principal.path) {
                         launchSingleTop = true
                         popUpTo(Route.HomeRoot.path) {
@@ -66,9 +77,11 @@ fun AppNavHost() {
                 },
                 onCartClick = { nav.navigate(Route.Cart.path) },
                 onProductClick = { producto ->
+                    // Navegamos usando el código del producto real
                     nav.navigate(Route.ProductDetail.create(producto.codigo))
                 },
-                carritoViewModel = carritoViewModel
+                carritoViewModel = carritoViewModel,
+                productsViewModel = productsViewModel // <--- Pasamos el VM con datos reales
             )
         }
 
@@ -79,6 +92,7 @@ fun AppNavHost() {
             )
         }
 
+        // --- RUTA DE DETALLE DE PRODUCTO ---
         composable(
             route = Route.ProductDetail.path,
             arguments = listOf(
@@ -88,11 +102,18 @@ fun AppNavHost() {
             )
         ) { backStackEntry ->
             val productId = backStackEntry.arguments?.getString(Route.ProductDetail.ARG_PRODUCT_ID)
-            val product = productosDemo.find { it.codigo == productId }
+
+            // 3. BUSCAR EN LA LISTA REAL (ORACLE)
+            // Accedemos a la lista actual que tiene el ViewModel
+            val listaReal = productsViewModel.productos.value
+            val product = listaReal.find { it.codigo == productId }
+
             if (product != null) {
-                val suggested = productosDemo.filter {
+                // Filtramos sugeridos de la misma lista real
+                val suggested = listaReal.filter {
                     it.categoria == product.categoria && it.codigo != product.codigo
-                }
+                }.take(5) // Limitamos a 5 para que no sea infinito
+
                 ProductDetailScreen(
                     producto = product,
                     sugeridos = suggested,
@@ -107,6 +128,7 @@ fun AppNavHost() {
                     }
                 )
             } else {
+                // Si el producto no se encuentra (ej: error de carga), volvemos
                 nav.popBackStack()
             }
         }

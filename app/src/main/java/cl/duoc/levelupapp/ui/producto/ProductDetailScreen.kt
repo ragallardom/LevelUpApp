@@ -1,58 +1,40 @@
 package cl.duoc.levelupapp.ui.producto
 
+import android.graphics.BitmapFactory
+import android.util.Base64
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import cl.duoc.levelupapp.R
 import cl.duoc.levelupapp.model.Producto
 import cl.duoc.levelupapp.ui.theme.BrandColors
 import kotlinx.coroutines.launch
 
+// --- COLORES ---
 private val BrandShadow = BrandColors.Shadow
 private val BrandMidnight = BrandColors.Midnight
 private val BrandDeepBlue = BrandColors.DeepBlue
@@ -61,6 +43,15 @@ private val BrandSurfaceElevated = BrandColors.SurfaceElevated
 private val BrandAccent = BrandColors.Accent
 private val BrandOnDark = BrandColors.OnDark
 private val BrandOnMuted = BrandColors.OnMuted
+
+fun String.toImageBitmap(): ImageBitmap? {
+    return try {
+        val decodedBytes = Base64.decode(this, Base64.DEFAULT)
+        BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)?.asImageBitmap()
+    } catch (e: Exception) {
+        null
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,6 +64,10 @@ fun ProductDetailScreen(
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
+
+    val imageBitmap = remember(producto.imageBase64) {
+        producto.imageBase64?.toImageBitmap()
+    }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -128,12 +123,24 @@ fun ProductDetailScreen(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Image(
-                            painter = painterResource(id = producto.imagenRes),
-                            contentDescription = producto.nombre,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
+                        if (imageBitmap != null) {
+                            Image(
+                                bitmap = imageBitmap,
+                                contentDescription = producto.nombre,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+
+                            Image(
+                                painter = painterResource(id = R.drawable.logo),
+                                contentDescription = "Imagen no disponible",
+                                modifier = Modifier
+                                    .size(100.dp)
+                                    .alpha(0.5f),
+                                contentScale = ContentScale.Fit
+                            )
+                        }
                     }
                 }
             }
@@ -148,7 +155,7 @@ fun ProductDetailScreen(
                         style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold)
                     )
                     Text(
-                        text = "${producto.categoria} • ${producto.codigo}",
+                        text = "${producto.descripcion ?: "Sin descripción"} • ${producto.codigo}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = BrandOnMuted
                     )
@@ -171,7 +178,7 @@ fun ProductDetailScreen(
 
             item {
                 Text(
-                    text = producto.descripcion,
+                    text = producto.descripcion ?: "No hay descripción disponible.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = BrandOnMuted
                 )
@@ -204,7 +211,7 @@ fun ProductDetailScreen(
                 item {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Sugeridos de ${producto.categoria}",
+                        text = "También te podría interesar",
                         color = BrandOnDark,
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
                     )
@@ -214,7 +221,7 @@ fun ProductDetailScreen(
                     LazyRow(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        items(sugeridos, key = { it.codigo }) { sugerido ->
+                        items(sugeridos, key = { it.id }) { sugerido ->
                             SuggestedProductCard(
                                 producto = sugerido,
                                 onClick = { onSuggestedProductClick(sugerido) }
@@ -232,6 +239,11 @@ private fun SuggestedProductCard(
     producto: Producto,
     onClick: () -> Unit
 ) {
+
+    val imageBitmap = remember(producto.imageBase64) {
+        producto.imageBase64?.toImageBitmap()
+    }
+
     Card(
         modifier = Modifier
             .width(200.dp)
@@ -249,15 +261,33 @@ private fun SuggestedProductCard(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalAlignment = Alignment.Start
         ) {
-            Image(
-                painter = painterResource(id = producto.imagenRes),
-                contentDescription = producto.nombre,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(110.dp)
-                    .clip(RoundedCornerShape(16.dp)),
-                contentScale = ContentScale.Crop
-            )
+            // Bloque de imagen condicional
+            if (imageBitmap != null) {
+                Image(
+                    bitmap = imageBitmap,
+                    contentDescription = producto.nombre,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(110.dp)
+                        .clip(RoundedCornerShape(16.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                // Placeholder si no hay imagen
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(110.dp)
+                        .background(Color.Gray.copy(alpha = 0.2f), RoundedCornerShape(16.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.logo),
+                        contentDescription = null,
+                        tint = Color.Gray
+                    )
+                }
+            }
 
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
