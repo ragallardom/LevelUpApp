@@ -7,9 +7,14 @@ import androidx.lifecycle.viewModelScope
 import cl.duoc.levelupapp.model.ProductRequest
 import cl.duoc.levelupapp.model.Producto
 import cl.duoc.levelupapp.network.RetrofitClient
+import cl.duoc.levelupapp.model.ApiService
+
 import kotlinx.coroutines.launch
 
-class ProductsViewModel : ViewModel() {
+class ProductsViewModel(
+    private val apiService: ApiService = RetrofitClient.api
+) : ViewModel() {
+
     private val _productos = mutableStateOf<List<Producto>>(emptyList())
     val productos: State<List<Producto>> = _productos
 
@@ -24,7 +29,8 @@ class ProductsViewModel : ViewModel() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val response = RetrofitClient.api.getProducts()
+                val response = apiService.getProducts() // Usa la variable del constructor
+
                 if (response.isSuccessful) {
                     _productos.value = response.body() ?: emptyList()
                 }
@@ -58,7 +64,7 @@ class ProductsViewModel : ViewModel() {
                     imageBase64 = imgBase64
                 )
 
-                val response = RetrofitClient.api.createProduct(request)
+                val response = apiService.createProduct(request) // Usa la variable del constructor
 
                 if (response.isSuccessful) {
                     cargarProductos()
@@ -100,8 +106,9 @@ class ProductsViewModel : ViewModel() {
                     imageBase64 = imgBase64
                 )
 
-
-                val response = RetrofitClient.api.updateProduct(id, request)
+                // --- CORRECCIÓN AQUÍ ---
+                // Antes usabas RetrofitClient.api, ahora usamos apiService para consistencia
+                val response = apiService.updateProduct(id, request)
 
                 if (response.isSuccessful) {
                     cargarProductos()

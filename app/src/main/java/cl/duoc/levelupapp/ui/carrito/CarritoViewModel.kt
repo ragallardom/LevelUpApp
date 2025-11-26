@@ -222,7 +222,7 @@ class CarritoViewModel(
 }
 
 
-private val currencyLocale: Locale = Locale("es", "CL")
+private val currencyLocale: Locale = Locale.forLanguageTag("es-CL")
 
 private fun formatCurrency(value: Int): String {
     val formatter = NumberFormat.getNumberInstance(currencyLocale)
