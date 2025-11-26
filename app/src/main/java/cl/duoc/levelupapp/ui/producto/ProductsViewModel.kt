@@ -4,6 +4,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import cl.duoc.levelupapp.model.ProductRequest
 import cl.duoc.levelupapp.model.Producto
 import cl.duoc.levelupapp.network.RetrofitClient
 import kotlinx.coroutines.launch
@@ -35,7 +36,83 @@ class ProductsViewModel : ViewModel() {
         }
     }
 
+    fun crearProducto(
+        code: String,
+        name: String,
+        desc: String,
+        price: Int,
+        stock: Int,
+        category: String,
+        imgBase64: String?
+    ) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val request = ProductRequest(
+                    codigo = code,
+                    nombre = name,
+                    descripcion = desc,
+                    precio = price,
+                    stock = stock,
+                    categoria = category,
+                    imageBase64 = imgBase64
+                )
+
+                val response = RetrofitClient.api.createProduct(request)
+
+                if (response.isSuccessful) {
+                    cargarProductos()
+                } else {
+                    println("Error al crear: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
     fun obtenerProductoPorCodigo(codigo: String): Producto? {
         return _productos.value.find { it.codigo == codigo }
+    }
+
+    fun actualizarProducto(
+        id: Long,
+        code: String,
+        name: String,
+        desc: String,
+        price: Int,
+        stock: Int,
+        category: String,
+        imgBase64: String?
+    ) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val request = ProductRequest(
+                    codigo = code,
+                    nombre = name,
+                    descripcion = desc,
+                    precio = price,
+                    stock = stock,
+                    categoria = category,
+                    imageBase64 = imgBase64
+                )
+
+
+                val response = RetrofitClient.api.updateProduct(id, request)
+
+                if (response.isSuccessful) {
+                    cargarProductos()
+                } else {
+                    println("Error al editar: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                _isLoading.value = false
+            }
+        }
     }
 }

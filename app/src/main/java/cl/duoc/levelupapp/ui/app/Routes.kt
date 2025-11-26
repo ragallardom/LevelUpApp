@@ -11,4 +11,9 @@ sealed class Route(val path: String) {
         const val ARG_PRODUCT_ID = "productoId"
         fun create(productId: String) = "producto/$productId"
     }
+    object AdminProduct : Route("admin_product"){
+        fun create(code: String? = null) = "admin_product?code=${code ?: ""}"
+    }
+
+
 }

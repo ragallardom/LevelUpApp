@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -60,7 +61,10 @@ fun ProductDetailScreen(
     sugeridos: List<Producto>,
     onBack: () -> Unit,
     onAddToCart: () -> Unit,
-    onSuggestedProductClick: (Producto) -> Unit
+    onSuggestedProductClick: (Producto) -> Unit,
+
+    isAdmin: Boolean = false,
+    onEditClick: () -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
@@ -70,6 +74,16 @@ fun ProductDetailScreen(
     }
 
     Scaffold(
+        floatingActionButton = {
+            if (isAdmin) {
+                FloatingActionButton(
+                    onClick = onEditClick,
+                    containerColor = BrandAccent
+                ) {
+                    Icon(Icons.Default.Edit, "Editar") // Asegúrate de importar Icons.Default.Edit
+                }
+            }
+        },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = Color.Transparent,
         snackbarHost = {

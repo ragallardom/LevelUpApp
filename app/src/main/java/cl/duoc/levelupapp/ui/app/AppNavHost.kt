@@ -4,7 +4,7 @@ import android.annotation.SuppressLint
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue // Importar para usar 'by' si fuera necesario, aunque aquí accedemos al value directo
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
@@ -20,7 +20,7 @@ import cl.duoc.levelupapp.ui.principal.PrincipalScreen
 import cl.duoc.levelupapp.ui.producto.ProductDetailScreen
 import cl.duoc.levelupapp.ui.recover.RecuperarPasswordScreen
 import cl.duoc.levelupapp.ui.register.RegistrarseScreen
-import cl.duoc.levelupapp.ui.producto.ProductsViewModel // <--- IMPORTANTE
+import cl.duoc.levelupapp.ui.producto.ProductsViewModel
 
 @SuppressLint("ContextCastToActivity")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,14 +29,12 @@ fun AppNavHost() {
     val nav = rememberNavController()
     val activity = LocalContext.current as ComponentActivity
 
-    // 1. ViewModel del Carrito (Global)
     val carritoViewModel: CarritoViewModel = viewModel(
         activity,
         factory = CarritoViewModel.provideFactory(activity.applicationContext)
     )
 
-    // 2. ViewModel de Productos (Global para el NavHost)
-    // Este se encargará de mantener la lista de productos descargada de Oracle
+
     val productsViewModel: ProductsViewModel = viewModel()
 
     NavHost(navController = nav, startDestination = Route.HomeRoot.path) {
@@ -53,7 +51,6 @@ fun AppNavHost() {
             LoginScreen(
                 onBack = { nav.popBackStack() },
                 onLoginSuccess = {
-                    // Al loguearse, recargamos productos por si acaso
                     productsViewModel.cargarProductos()
                     nav.navigate(Route.Principal.path) {
                         launchSingleTop = true
@@ -80,8 +77,48 @@ fun AppNavHost() {
                     // Navegamos usando el código del producto real
                     nav.navigate(Route.ProductDetail.create(producto.codigo))
                 },
+                onAdminClick = { codigoParaEditar ->
+                    if (codigoParaEditar == null) {
+                        nav.navigate("admin_product")
+                    } else {
+                        nav.navigate("admin_product?code=$codigoParaEditar")
+                    }
+                },
                 carritoViewModel = carritoViewModel,
                 productsViewModel = productsViewModel // <--- Pasamos el VM con datos reales
+            )
+        }
+
+        composable(
+            route = "admin_product?code={code}",
+            arguments = listOf(navArgument("code") { defaultValue = "" })
+        ) { backStackEntry ->
+
+            val productCode = backStackEntry.arguments?.getString("code")
+
+            val productToEdit = productsViewModel.productos.value.find { it.codigo == productCode }
+
+            cl.duoc.levelupapp.ui.admin.AdminProductScreen(
+                productToEdit = productToEdit,
+                onBack = { nav.popBackStack() },
+                onSave = { code, name, desc, price, stock, cat, img ->
+
+                    if (productToEdit == null) {
+                        productsViewModel.crearProducto(code, name, desc, price, stock, cat, img)
+                    } else {
+                        productsViewModel.actualizarProducto(
+                            id = productToEdit.id,
+                            code = code,
+                            name = name,
+                            desc = desc,
+                            price = price,
+                            stock = stock,
+                            category = cat,
+                            imgBase64 = img
+                        )
+                    }
+                    nav.popBackStack()
+                }
             )
         }
 
@@ -103,13 +140,11 @@ fun AppNavHost() {
         ) { backStackEntry ->
             val productId = backStackEntry.arguments?.getString(Route.ProductDetail.ARG_PRODUCT_ID)
 
-            // 3. BUSCAR EN LA LISTA REAL (ORACLE)
-            // Accedemos a la lista actual que tiene el ViewModel
+
             val listaReal = productsViewModel.productos.value
             val product = listaReal.find { it.codigo == productId }
 
             if (product != null) {
-                // Filtramos sugeridos de la misma lista real
                 val suggested = listaReal.filter {
                     it.categoria == product.categoria && it.codigo != product.codigo
                 }.take(5) // Limitamos a 5 para que no sea infinito
@@ -125,10 +160,13 @@ fun AppNavHost() {
                         nav.navigate(Route.ProductDetail.create(sugerido.codigo)) {
                             launchSingleTop = true
                         }
+                    },
+                    isAdmin = true,
+                    onEditClick = {
+                        nav.navigate("admin_product?code=${product.codigo}")
                     }
                 )
             } else {
-                // Si el producto no se encuentra (ej: error de carga), volvemos
                 nav.popBackStack()
             }
         }

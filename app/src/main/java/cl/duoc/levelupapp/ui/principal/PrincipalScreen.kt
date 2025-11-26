@@ -1,5 +1,6 @@
 package cl.duoc.levelupapp.ui.principal
 
+import CategoriesScreen
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
@@ -56,6 +57,7 @@ import cl.duoc.levelupapp.repository.carrito.InMemoryCarritoRepository
 import cl.duoc.levelupapp.ui.account.AccountScreen
 import cl.duoc.levelupapp.ui.carrito.CarritoUiState
 import cl.duoc.levelupapp.ui.carrito.CarritoViewModel
+import cl.duoc.levelupapp.ui.orders.OrdersScreen
 import cl.duoc.levelupapp.ui.theme.BrandColors
 import cl.duoc.levelupapp.ui.theme.LevelUppAppTheme
 import cl.duoc.levelupapp.ui.producto.ProductsViewModel
@@ -75,6 +77,10 @@ private val BrandShadow = BrandColors.Shadow
 private val BrandMidnight = BrandColors.Midnight
 private val BrandDeepBlue = BrandColors.DeepBlue
 private val BrandAccent = BrandColors.Accent
+private val BrandSurface = BrandColors.Surface
+private val BrandSurfaceElevated = BrandColors.SurfaceElevated
+private val BrandOnDark = BrandColors.OnDark
+private val BrandOnMuted = BrandColors.OnMuted
 
 data class CarouselItem(
     @DrawableRes val imageRes: Int,
@@ -94,6 +100,7 @@ sealed interface LocationUiState {
     data object Loading : LocationUiState
     data class Success(val address: String) : LocationUiState
     data class Error(val message: String) : LocationUiState
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -102,6 +109,7 @@ fun PrincipalScreen(
     onLogout: () -> Unit,
     onCartClick: () -> Unit = {},
     onProductClick: (Producto) -> Unit = {},
+    onAdminClick: (String?) -> Unit = {},
     viewModel: PrincipalViewModel = viewModel(),
     carritoViewModel: CarritoViewModel,
     productsViewModel: ProductsViewModel
@@ -234,6 +242,79 @@ fun PrincipalScreen(
             permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         }
     }
+    var showAdminDialog by remember { mutableStateOf(false) }
+    var codeToEdit by remember { mutableStateOf("") }
+
+
+    if (showAdminDialog) {
+        AlertDialog(
+            onDismissRequest = { showAdminDialog = false },
+            title = { Text("Gestión de Productos", color = BrandAccent, fontWeight = FontWeight.Bold) },
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    // Opción A: Crear Nuevo
+                    FilledTonalButton(
+                        onClick = {
+                            showAdminDialog = false
+                            onAdminClick(null) // null = Crear
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.filledTonalButtonColors(
+                            containerColor = BrandAccent,
+                            contentColor = BrandDeepBlue
+                        )
+                    ) {
+                        Icon(Icons.Default.Add, null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Crear Nuevo Producto")
+                    }
+
+                    HorizontalDivider()
+
+                    // Opción B: Buscar para Editar
+
+                    Text("Editar existente:", style = MaterialTheme.typography.labelLarge, color = BrandOnMuted)
+                    OutlinedTextField(
+                        value = codeToEdit,
+                        onValueChange = { codeToEdit = it },
+                        label = { Text("Ingresa Código (SKU)") },
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = BrandAccent,
+                            focusedLabelColor = BrandAccent
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Button(
+                        onClick = {
+                            showAdminDialog = false
+                            if (codeToEdit.isNotBlank()) {
+                                onAdminClick(codeToEdit) // enviamos el código
+                            }
+                        },
+                        enabled = codeToEdit.isNotBlank(),
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = BrandDeepBlue,
+                            contentColor = BrandAccent
+                        )
+                    ) {
+                        Text("Buscar y Editar")
+                    }
+                }
+            },
+            confirmButton = {}, // No usamos botón confirmar estándar, usamos los nuestros
+            dismissButton = {
+                TextButton(onClick = { showAdminDialog = false }) {
+                    Text("Cancelar", color = Color.Gray)
+                }
+            },
+            containerColor = BrandColors.SurfaceElevated
+        )
+    }
 
     Scaffold(
         containerColor = Color.Transparent,
@@ -339,6 +420,16 @@ fun PrincipalScreen(
                     )
                 )
             }
+        },
+        floatingActionButton = {
+            if (uiState.isAdmin) {
+                FloatingActionButton(
+                    onClick = { showAdminDialog = true },
+                    containerColor = BrandAccent
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Administrar", tint = BrandDeepBlue)
+                }
+            }
         }
     ) { innerPadding ->
         Box(
@@ -389,20 +480,19 @@ fun PrincipalScreen(
                     email = uiState.email
                 )
 
-                BottomOption.CATEGORIES -> PlaceholderContent(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding),
-                    title = "Categorías",
-                    description = "Explora todas las categorías disponibles en tu próxima visita."
+                BottomOption.CATEGORIES -> CategoriesScreen(
+                    categorias = categoriasDinamicas,
+
+                    onCategoryClick = { categoriaElegida ->
+                        viewModel.setCategoria(categoriaElegida)
+                        selectedOption = BottomOption.HOME
+                    }
                 )
 
-                BottomOption.ORDERS -> PlaceholderContent(
+                BottomOption.ORDERS -> OrdersScreen(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(innerPadding),
-                    title = "Compras",
-                    description = "Aquí verás el historial de tus pedidos pronto."
+                        .padding(innerPadding)
                 )
 
                 BottomOption.LOGOUT -> PlaceholderContent(

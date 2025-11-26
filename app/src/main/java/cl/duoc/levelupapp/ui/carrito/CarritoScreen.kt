@@ -1,39 +1,14 @@
 package cl.duoc.levelupapp.ui.carrito
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DividerDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -61,6 +36,41 @@ fun CarritoScreen(
     viewModel: CarritoViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    // --- DIÁLOGO DE COMPRA EXITOSA ---
+    if (uiState.lastSale != null) {
+        val venta = uiState.lastSale!!
+        AlertDialog(
+            onDismissRequest = { viewModel.cerrarDialogoCompra() },
+            containerColor = BrandSurface,
+            title = {
+                Text(
+                    "¡Compra Exitosa!",
+                    color = BrandAccent,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column {
+                    Text("ID Venta: ${venta.id}", color = BrandOnDark)
+                    Text("Total: $${venta.total}", color = BrandOnDark)
+                    Spacer(Modifier.height(8.dp))
+                    Text("Productos:", fontWeight = FontWeight.Bold, color = BrandOnDark)
+                    venta.items.forEach { item ->
+                        Text("- ${item.quantity}x ${item.productName}", color = BrandOnMuted)
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.cerrarDialogoCompra()
+                    onBack() // Volver al home opcionalmente
+                }) {
+                    Text("Aceptar", color = BrandAccent)
+                }
+            }
+        )
+    }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -129,10 +139,22 @@ fun CarritoScreen(
                         }
                     }
 
+                    // Mensaje de error si falla el pago
+                    uiState.error?.let { error ->
+                        Text(
+                            text = error,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(horizontal = 8.dp)
+                        )
+                    }
+
                     SummarySection(
                         totalItems = uiState.totalItems,
                         formattedTotal = uiState.formattedTotal,
-                        onClear = { viewModel.limpiarCarrito() }
+                        isPaying = uiState.isPaying, // Pasamos el estado de carga
+                        onClear = { viewModel.limpiarCarrito() },
+                        onCheckout = { viewModel.pagar() } // Conectamos la función pagar
                     )
                 }
             }
@@ -168,8 +190,9 @@ private fun EmptyCartState() {
 private fun SummarySection(
     totalItems: Int,
     formattedTotal: String,
+    isPaying: Boolean,
     onClear: () -> Unit,
-    onCheckout: () -> Unit = {}
+    onCheckout: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -198,7 +221,7 @@ private fun SummarySection(
                     color = BrandOnMuted
                 )
                 Text(
-                    text = "Total a pagar: $formattedTotal ",
+                    text = "Total a pagar: $formattedTotal",
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.SemiBold
                     ),
@@ -218,23 +241,33 @@ private fun SummarySection(
             ) {
                 OutlinedButton(
                     onClick = onClear,
+                    enabled = !isPaying,
                     modifier = Modifier.weight(1f),
                     border = BorderStroke(1.dp, BrandAccent),
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = BrandAccent
                     )
                 ) {
-                    Text(text = "Limpiar carrito")
+                    Text(text = "Limpiar")
                 }
                 FilledTonalButton(
                     onClick = onCheckout,
+                    enabled = !isPaying,
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.filledTonalButtonColors(
                         containerColor = BrandAccent,
                         contentColor = BrandDeepBlue
                     )
                 ) {
-                    Text(text = "Pagar")
+                    if (isPaying) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = BrandDeepBlue,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(text = "Pagar")
+                    }
                 }
             }
         }
