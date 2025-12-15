@@ -56,6 +56,25 @@ android {
         compose = true
     }
     buildToolsVersion = "36.0.0"
+
+    signingConfigs {
+        create("release") {
+
+            storeFile = file("${rootProject.rootDir}/keystore/levelup-key.jks")
+            storePassword = "123456"
+            keyAlias = "levelup"
+            keyPassword = "123456"
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.getByName("release")
+
+            isMinifyEnabled = false
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+    }
 }
 
 dependencies {
