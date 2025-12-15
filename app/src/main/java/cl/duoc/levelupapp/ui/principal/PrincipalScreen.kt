@@ -346,6 +346,7 @@ fun PrincipalScreen(
                     },
                     icon = { Icon(Icons.Default.Home, contentDescription = "Inicio") },
                     label = { Text("Inicio") },
+                    alwaysShowLabel = false,
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = BrandDeepBlue,
                         selectedTextColor = BrandAccent,
@@ -362,6 +363,7 @@ fun PrincipalScreen(
                     },
                     icon = { Icon(Icons.Default.Person, contentDescription = "Mi cuenta") },
                     label = { Text("Mi cuenta") },
+                    alwaysShowLabel = false,
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = BrandDeepBlue,
                         selectedTextColor = BrandAccent,
@@ -378,6 +380,7 @@ fun PrincipalScreen(
                     },
                     icon = { Icon(Icons.Default.Category, contentDescription = "Categorías") },
                     label = { Text("Categorías") },
+                    alwaysShowLabel = false,
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = BrandDeepBlue,
                         selectedTextColor = BrandAccent,
@@ -394,6 +397,7 @@ fun PrincipalScreen(
                     },
                     icon = { Icon(Icons.Default.ShoppingBag, contentDescription = "Compras") },
                     label = { Text("Compras") },
+                    alwaysShowLabel = false,
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = BrandDeepBlue,
                         selectedTextColor = BrandAccent,
@@ -411,6 +415,7 @@ fun PrincipalScreen(
                     },
                     icon = { Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Logout") },
                     label = { Text("Logout") },
+                    alwaysShowLabel = false,
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = BrandDeepBlue,
                         selectedTextColor = BrandAccent,
